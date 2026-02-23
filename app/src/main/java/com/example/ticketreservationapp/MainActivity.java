@@ -18,6 +18,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        checkAllFields checkClass = new checkAllFields();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
 
@@ -51,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
         Button btnRegister = findViewById(R.id.btnRegister);
         btnRegister.setOnClickListener(v -> {
 
-            isAllFieldsCheck = CheckAllFields();
+            isAllFieldsCheck = checkClass.CheckAllFields(etName, etEmail, etPhone, etPassword, check);
 
             if(isAllFieldsCheck) {
                 Intent intent = new Intent(MainActivity.this, EventListActivity.class);
@@ -61,37 +62,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private boolean CheckAllFields() {
-        if (etName.length() == 0) {
-            etName.setError("This field is required");
-            return false;
-        }
 
-        if (check == R.id.btnEmail) {
-            if (etEmail.length() == 0) {
-                etEmail.setError("Email is required");
-                return false;
-            }
-        }
-
-        if (check == R.id.btnPhone) {
-            if (etPhone.length() != 10) {
-                etEmail.setError("Valid phone number is required");
-                return false;
-            }
-        }
-
-        if (etPassword.length() == 0) {
-            etPassword.setError("Password is required");
-            return false;
-        } else if (etPassword.length() < 8) {
-            etPassword.setError("Password must be minimum 8 characters");
-            return false;
-        }
-
-        // after all validation return true.
-        return true;
-    }
 
 
 
