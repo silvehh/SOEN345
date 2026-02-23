@@ -6,9 +6,15 @@ import android.view.View;
 import android.widget.Button;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButtonToggleGroup;
+import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
 public class MainActivity extends AppCompatActivity {
+
+    TextInputEditText etName, etEmail, etPassword, etPhone;
+    int check;
+
+    boolean isAllFieldsCheck = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Switch between email and phone fields
         toggle.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
+            check = checkedId;
             if (isChecked) {
                 if (checkedId == R.id.btnEmail) {
                     tilEmail.setVisibility(View.VISIBLE);
@@ -32,11 +39,60 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        etName = findViewById(R.id.etName);
+        etPassword = findViewById(R.id.etPassword);
+        if(check == R.id.btnEmail) {
+            etEmail = findViewById(R.id.etEmail);
+        } else {
+            etPhone = findViewById(R.id.etPhone);
+        }
+
         // Register button navigates to events screen
         Button btnRegister = findViewById(R.id.btnRegister);
         btnRegister.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, EventListActivity.class);
-            startActivity(intent);
+
+            isAllFieldsCheck = CheckAllFields();
+
+            if(isAllFieldsCheck) {
+                Intent intent = new Intent(MainActivity.this, EventListActivity.class);
+                startActivity(intent);
+            }
+
         });
     }
+
+    private boolean CheckAllFields() {
+        if (etName.length() == 0) {
+            etName.setError("This field is required");
+            return false;
+        }
+
+        if (check == R.id.btnEmail) {
+            if (etEmail.length() == 0) {
+                etEmail.setError("Email is required");
+                return false;
+            }
+        }
+
+        if (check == R.id.btnPhone) {
+            if (etPhone.length() != 10) {
+                etEmail.setError("Valid phone number is required");
+                return false;
+            }
+        }
+
+        if (etPassword.length() == 0) {
+            etPassword.setError("Password is required");
+            return false;
+        } else if (etPassword.length() < 8) {
+            etPassword.setError("Password must be minimum 8 characters");
+            return false;
+        }
+
+        // after all validation return true.
+        return true;
+    }
+
+
+
 }
