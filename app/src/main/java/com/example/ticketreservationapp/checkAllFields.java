@@ -19,7 +19,7 @@ public class checkAllFields {
 
         if (check == R.id.btnPhone) {
             if (etPhone.length() != 10) {
-                etEmail.setError("Valid phone number is required");
+                etPhone.setError("Valid phone number is required");
                 return false;
             }
         }
