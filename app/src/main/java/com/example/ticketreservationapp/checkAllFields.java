@@ -15,14 +15,13 @@ public class checkAllFields {
                 etEmail.setError("Email is required");
                 return false;
             }
-        }
-
-        if (check == R.id.btnPhone) {
+        } else if (check == R.id.btnPhone) {
             if (etPhone.length() != 10) {
                 etPhone.setError("Valid phone number is required");
                 return false;
             }
         }
+
 
         if (etPassword.length() == 0) {
             etPassword.setError("Password is required");
