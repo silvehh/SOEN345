@@ -12,13 +12,13 @@ import com.google.android.material.textfield.TextInputLayout;
 public class MainActivity extends AppCompatActivity {
 
     TextInputEditText etName, etEmail, etPassword, etPhone;
-    int check;
-
+    int check = R.id.btnEmail;
     boolean isAllFieldsCheck = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         checkAllFields checkClass = new checkAllFields();
+        readWrite rw = new readWrite();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
 
@@ -44,17 +44,18 @@ public class MainActivity extends AppCompatActivity {
         etPassword = findViewById(R.id.etPassword);
         if(check == R.id.btnEmail) {
             etEmail = findViewById(R.id.etEmail);
+
         } else {
             etPhone = findViewById(R.id.etPhone);
+
         }
 
         // Register button navigates to events screen
         Button btnRegister = findViewById(R.id.btnRegister);
         btnRegister.setOnClickListener(v -> {
-
             isAllFieldsCheck = checkClass.CheckAllFields(etName, etEmail, etPhone, etPassword, check);
-
             if(isAllFieldsCheck) {
+                rw.registerUser(etName, etEmail, etPhone, etPassword, check);
                 Intent intent = new Intent(MainActivity.this, EventListActivity.class);
                 startActivity(intent);
             }
