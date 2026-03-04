@@ -1,14 +1,16 @@
 package com.example.ticketreservationapp;
 
 public class User {
-    private String name;
 
+    private String id;
+    private String name;
     private String email;
     private String phone;
     private String password;
     public User() {}
 
-    public User(String name, String email, String phone, String password) {
+    public User(String id, String name, String email, String phone, String password) {
+        this.id = id;
         this.name = name;
         this.email = email;
         this.phone = phone;
@@ -32,4 +34,7 @@ public class User {
     }
 
 
+    public String getId() {
+        return id;
+    }
 }

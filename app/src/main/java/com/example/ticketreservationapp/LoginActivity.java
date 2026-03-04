@@ -4,23 +4,23 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
-public class MainActivity extends AppCompatActivity {
+public class LoginActivity extends AppCompatActivity {
 
-    TextInputEditText etName, etEmail, etPassword, etPhone;
+    TextInputEditText etEmail, etPassword, etPhone;
     int check = R.id.btnEmail;
-    boolean isAllFieldsCheck = false;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        checkAllFields checkClass = new checkAllFields();
-        readWrite rw = new readWrite();
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_register);
+        setContentView(R.layout.activity_login);
 
         TextInputLayout tilEmail = findViewById(R.id.tilEmail);
         TextInputLayout tilPhone = findViewById(R.id.tilPhone);
@@ -40,21 +40,19 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        etName = findViewById(R.id.etName);
+
         etPassword = findViewById(R.id.etPassword);
         if(check == R.id.btnEmail) {
             etEmail = findViewById(R.id.etEmail);
-
         } else {
             etPhone = findViewById(R.id.etPhone);
-
         }
 
-        //load login Screen on button tap
+
 
         Button btnLogin = findViewById(R.id.btnLogin);
         btnLogin.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+            Intent intent = new Intent(LoginActivity.this, EventListActivity.class);
             startActivity(intent);
         });
 
@@ -62,20 +60,10 @@ public class MainActivity extends AppCompatActivity {
         // Register button navigates to events screen
         Button btnRegister = findViewById(R.id.btnRegister);
         btnRegister.setOnClickListener(v -> {
-            isAllFieldsCheck = checkClass.CheckAllFields(etName, etEmail, etPhone, etPassword, check);
-            if(isAllFieldsCheck) {
-                rw.registerUser(etName, etEmail, etPhone, etPassword, check);
-                Intent intent = new Intent(MainActivity.this, EventListActivity.class);
+                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                 startActivity(intent);
-            }
-
         });
 
 
     }
-
-
-
-
-
 }
