@@ -8,6 +8,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.FirebaseException;
+import com.google.firebase.auth.*;
+
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -64,7 +69,6 @@ public class MainActivity extends AppCompatActivity {
         // Register button navigates to events screen
         Button btnRegister = findViewById(R.id.btnRegister);
         btnRegister.setOnClickListener(v -> {
-
             isAllFieldsCheck = checkClass.CheckAllFields(etName, etEmail, etPhone, etPassword, check);
             rw.registerUser(etName, etEmail, etPhone, etPassword, check);
             if (isAllFieldsCheck) {
@@ -81,5 +85,9 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
+
+
+
+
 
 }
