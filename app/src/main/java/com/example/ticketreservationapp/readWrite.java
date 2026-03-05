@@ -12,6 +12,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.auth.*;
 
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 
 public class readWrite extends Activity {
@@ -37,11 +38,11 @@ public class readWrite extends Activity {
                         }
                     });
 
-            } else {
+            } /*else {
 
             User user = new User("", Objects.requireNonNull(etName.getText()).toString(), null, Objects.requireNonNull(etPhone.getText()).toString(), Objects.requireNonNull(etPassword.getText()).toString());
             db.collection("users").document("phone").set(user);
-        }
+        }*/
 
     }
 
