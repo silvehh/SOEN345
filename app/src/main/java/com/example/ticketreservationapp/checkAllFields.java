@@ -5,7 +5,7 @@ import com.google.android.material.textfield.TextInputEditText;
 public class checkAllFields {
 
     public boolean CheckAllFields(TextInputEditText etName, TextInputEditText etEmail, TextInputEditText etPhone, TextInputEditText etPassword, int check) {
-        if (etName.length() == 0) {
+        if (etName != null && etName.length() == 0) {
             etName.setError("This field is required");
             return false;
         }

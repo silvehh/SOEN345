@@ -3,8 +3,13 @@ package com.example.ticketreservationapp;
 
 import android.app.Activity;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -46,16 +51,23 @@ public class readWrite extends Activity {
 
     }
 
-    void findUser(TextInputEditText etEmail, TextInputEditText etPhone, TextInputEditText etPassword, int check) {
+    void signIn(TextInputEditText etEmail, TextInputEditText etPhone, TextInputEditText etPassword, int check) {
         if(check == R.id.btnEmail) {
-            DocumentReference doc = db.collection("users").document("email");
-            doc.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                @Override
-                public void onSuccess(DocumentSnapshot documentSnapshot) {
-                    User user = documentSnapshot.toObject(User.class);
+            mAuth.signInWithEmailAndPassword(Objects.requireNonNull(etEmail.getText()).toString(), Objects.requireNonNull(etPassword.getText()).toString())
+                    .addOnCompleteListener(this, task -> {
+                        if (task.isSuccessful()) {
+                            // Sign in success, update UI with the signed-in user's information
 
-                }
-            });
+                            FirebaseUser user = mAuth.getCurrentUser();
+                            System.out.println("Signin");
+
+                        } else {
+                            // If sign in fails, display a message to the user.
+                            Toast.makeText(readWrite.this, "Authentication failed.",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    });
+
         }
 
     }
