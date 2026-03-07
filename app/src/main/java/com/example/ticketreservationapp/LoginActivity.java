@@ -16,14 +16,19 @@ public class LoginActivity extends AppCompatActivity {
     TextInputEditText etEmail, etPassword, etPhone;
     int check = R.id.btnEmail;
 
+    boolean isAllFieldsCheck = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
 
+        checkAllFields checkClass = new checkAllFields();
+
+        setContentView(R.layout.activity_login);
+        readWrite rw = new readWrite();
         TextInputLayout tilEmail = findViewById(R.id.tilEmail);
         TextInputLayout tilPhone = findViewById(R.id.tilPhone);
+        TextInputLayout tilPasswrd = findViewById(R.id.tilPassword);
         MaterialButtonToggleGroup toggle = findViewById(R.id.toggleContactType);
 
         // Switch between email and phone fields
@@ -33,9 +38,11 @@ public class LoginActivity extends AppCompatActivity {
                 if (checkedId == R.id.btnEmail) {
                     tilEmail.setVisibility(View.VISIBLE);
                     tilPhone.setVisibility(View.GONE);
+                    tilPasswrd.setVisibility(View.VISIBLE);
                 } else if (checkedId == R.id.btnPhone) {
                     tilPhone.setVisibility(View.VISIBLE);
                     tilEmail.setVisibility(View.GONE);
+                    tilPasswrd.setVisibility(View.GONE);
                 }
             }
         });
@@ -44,6 +51,7 @@ public class LoginActivity extends AppCompatActivity {
         etPassword = findViewById(R.id.etPassword);
         if(check == R.id.btnEmail) {
             etEmail = findViewById(R.id.etEmail);
+            etPassword = findViewById(R.id.etPassword);
         } else {
             etPhone = findViewById(R.id.etPhone);
         }
@@ -52,8 +60,15 @@ public class LoginActivity extends AppCompatActivity {
 
         Button btnLogin = findViewById(R.id.btnLogin);
         btnLogin.setOnClickListener(v -> {
-            Intent intent = new Intent(LoginActivity.this, EventListActivity.class);
-            startActivity(intent);
+            isAllFieldsCheck = checkClass.CheckAllFields(null, etEmail, etPhone, etPassword, check);
+            if(isAllFieldsCheck) {
+                rw.signIn(etEmail, etPhone, etPassword, check);
+                Intent intent = new Intent(LoginActivity.this, EventListActivity.class);
+                startActivity(intent);
+
+            }
+
+
         });
 
 
