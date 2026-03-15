@@ -17,8 +17,8 @@ public class AdminDashboardActivity extends AppCompatActivity {
         LinearLayout cardCancelEvent = findViewById(R.id.cardCancelEvent);
         LinearLayout navEvents       = findViewById(R.id.navEvents);
 
-//        cardAddEvent.setOnClickListener(v ->
-//                startActivity(new Intent(this, AddEventActivity.class)));
+        cardAddEvent.setOnClickListener(v ->
+                startActivity(new Intent(this, AddEventActivity.class)));
 
         cardEditEvent.setOnClickListener(v ->
                 startActivity(new Intent(this, EventListActivity.class)));

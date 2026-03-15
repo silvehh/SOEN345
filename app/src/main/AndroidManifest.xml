@@ -25,10 +25,7 @@
         <activity android:name=".MainActivity" />
         <activity android:name=".EventListActivity" />
         <activity android:name=".AdminDashboardActivity"/>
-<!--        <activity android:name=".AdminLoginActivity" />-->
-<!--        <activity android:name=".AdminDashboardActivity" />-->
-<!--        <activity android:name=".AddEventActivity" />-->
-<!--        <activity android:name=".EditEventActivity" />-->
+        <activity android:name=".AddEventActivity"/>
 
     </application>
 
