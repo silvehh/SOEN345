@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#6C63FF"
+    android:gravity="center">
+
+    <!-- Logo + branding top half -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="32dp">
+
+        <LinearLayout
+            android:layout_width="90dp"
+            android:layout_height="90dp"
+            android:background="@drawable/logo_circle"
+            android:gravity="center"
+            android:layout_gravity="center"
+            android:layout_marginBottom="24dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🎟"
+                android:textSize="36sp"/>
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="TicketApp"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:layout_gravity="center"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Book events. Anytime, anywhere."
+            android:textSize="14sp"
+            android:textColor="#CCCBFF"
+            android:layout_gravity="center"/>
+
+    </LinearLayout>
+
+    <!-- Bottom white card -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/bottom_card"
+        android:padding="32dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Welcome back"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#111111"
+            android:layout_gravity="center"
+            android:layout_marginBottom="6dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sign in to continue"
+            android:textSize="13sp"
+            android:textColor="#888888"
+            android:layout_gravity="center"
+            android:layout_marginBottom="28dp"/>
+
+        <!-- User Login button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnUserLogin"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="User Login"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            app:backgroundTint="#6C63FF"
+            app:cornerRadius="26dp"
+            android:layout_marginBottom="12dp"/>
+
+        <!-- Admin Login button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAdminLogin"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="Admin Login"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="#6C63FF"
+            app:strokeColor="#6C63FF"
+            app:strokeWidth="1.5dp"
+            app:cornerRadius="26dp"/>
+
+    </LinearLayout>
+
+</LinearLayout>
