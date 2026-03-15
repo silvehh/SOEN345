@@ -28,7 +28,6 @@ public class LoginActivity extends AppCompatActivity {
         readWrite rw = new readWrite();
         TextInputLayout tilEmail = findViewById(R.id.tilEmail);
         TextInputLayout tilPhone = findViewById(R.id.tilPhone);
-        TextInputLayout tilPasswrd = findViewById(R.id.tilPassword);
         MaterialButtonToggleGroup toggle = findViewById(R.id.toggleContactType);
 
         // Switch between email and phone fields
@@ -38,11 +37,15 @@ public class LoginActivity extends AppCompatActivity {
                 if (checkedId == R.id.btnEmail) {
                     tilEmail.setVisibility(View.VISIBLE);
                     tilPhone.setVisibility(View.GONE);
-                    tilPasswrd.setVisibility(View.VISIBLE);
                 } else if (checkedId == R.id.btnPhone) {
                     tilPhone.setVisibility(View.VISIBLE);
                     tilEmail.setVisibility(View.GONE);
-                    tilPasswrd.setVisibility(View.GONE);
+                }
+                etPassword = findViewById(R.id.etPassword);
+                if(check == R.id.btnEmail) {
+                    etEmail = findViewById(R.id.etEmail);
+                } else {
+                    etPhone = findViewById(R.id.etPhone);
                 }
             }
         });
@@ -51,7 +54,6 @@ public class LoginActivity extends AppCompatActivity {
         etPassword = findViewById(R.id.etPassword);
         if(check == R.id.btnEmail) {
             etEmail = findViewById(R.id.etEmail);
-            etPassword = findViewById(R.id.etPassword);
         } else {
             etPhone = findViewById(R.id.etPhone);
         }
@@ -65,9 +67,7 @@ public class LoginActivity extends AppCompatActivity {
                 rw.signIn(etEmail, etPhone, etPassword, check);
                 Intent intent = new Intent(LoginActivity.this, EventListActivity.class);
                 startActivity(intent);
-
             }
-
 
         });
 
