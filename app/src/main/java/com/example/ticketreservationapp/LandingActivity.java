@@ -12,13 +12,19 @@ public class LandingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        MaterialButton btnUserLogin = findViewById(R.id.btnUserLogin);
+        MaterialButton btnUserLogin  = findViewById(R.id.btnUserLogin);
         MaterialButton btnAdminLogin = findViewById(R.id.btnAdminLogin);
 
-        btnUserLogin.setOnClickListener(v ->
-                startActivity(new Intent(this, MainActivity.class)));
+        btnUserLogin.setOnClickListener(v -> {
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.putExtra("isAdmin", false);
+            startActivity(intent);
+        });
 
-      btnAdminLogin.setOnClickListener(v ->
-                startActivity(new Intent(this, MainActivity.class)));
+        btnAdminLogin.setOnClickListener(v -> {
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.putExtra("isAdmin", true);
+            startActivity(intent);
+        });
     }
 }
