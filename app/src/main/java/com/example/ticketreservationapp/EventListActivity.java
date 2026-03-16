@@ -30,7 +30,9 @@ public class EventListActivity extends AppCompatActivity {
 
         Button btnSignOut = findViewById(R.id.signOut);
 
-        btnSignOut.setOnClickListener(v -> startActivity(new Intent(this, LandingActivity.class)));
+        btnSignOut.setOnClickListener(v -> {
+            startActivity(new Intent(this, LandingActivity.class));
+        });
 
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();

@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 
 import java.util.Objects;
@@ -18,8 +19,7 @@ public class MainActivity extends AppCompatActivity {
     int check = R.id.btnEmail;
     boolean isAllFieldsCheck = false;
 
-    User user;
-
+    FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         boolean isAdmin = getIntent().getBooleanExtra("isAdmin", false);
 
-        readWrite rw = new readWrite();
+        readWrite rw = new readWrite(db);
         setContentView(R.layout.activity_register);
         TextInputLayout tilEmail = findViewById(R.id.tilEmail);
         TextInputLayout tilPhone = findViewById(R.id.tilPhone);
@@ -80,13 +80,17 @@ public class MainActivity extends AppCompatActivity {
         btnRegister.setOnClickListener(v -> {
             isAllFieldsCheck = checkClass.CheckAllFields(etName, etEmail, etPhone, etPassword, check);
             if(isAllFieldsCheck) {
+                User user;
                 if(check == R.id.btnEmail) {
                     user = new User(Objects.requireNonNull(etName.getText()).toString(), Objects.requireNonNull(etEmail.getText()).toString(), null, Objects.requireNonNull(etPassword.getText()).toString(), isAdmin, null);
                 } else {
                     user = new User(Objects.requireNonNull(etName.getText()).toString(), null, Objects.requireNonNull(etPhone.getText()).toString(), Objects.requireNonNull(etPassword.getText()).toString(), isAdmin, null);
                 }
                 rw.registerUser(user);
+
+
                 Intent intent;
+
                 if(isAdmin) {
                     intent = new Intent(MainActivity.this, AdminDashboardActivity.class);
 

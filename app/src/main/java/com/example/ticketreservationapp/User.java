@@ -10,16 +10,16 @@ public class User implements Serializable {
     private String email;
     private String phone;
     private String password;
-    private boolean isAdmin;
+    private boolean admin;
     private ArrayList<String> events;
     public User() {}
 
-    public User( String name, String email, String phone, String password, boolean isAdmin, ArrayList<String> events) {
+    public User( String name, String email, String phone, String password, boolean admin, ArrayList<String> events) {
         this.name = name;
         this.email = email;
         this.phone = phone;
         this.password = password;
-        this.isAdmin = isAdmin;
+        this.admin = admin;
         this.events = events;
     }
 
@@ -39,12 +39,35 @@ public class User implements Serializable {
         return password;
     }
 
-
-    public boolean isAdmin() {
-        return isAdmin;
+    public boolean getAdmin() {
+        return admin;
     }
 
     public ArrayList<String> getEvents() {
         return events;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public void setAdmin(boolean admin) {
+        this.admin = admin;
+    }
+
+    public void setEvents(ArrayList<String> events) {
+        this.events = events;
     }
 }

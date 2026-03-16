@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.Objects;
 
@@ -22,7 +23,7 @@ public class LoginActivity extends AppCompatActivity {
 
     boolean isAllFieldsCheck = false;
 
-
+    FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,7 +31,7 @@ public class LoginActivity extends AppCompatActivity {
         checkAllFields checkClass = new checkAllFields();
         boolean isAdmin = getIntent().getBooleanExtra("isAdmin", false);
         setContentView(R.layout.activity_login);
-        readWrite rw = new readWrite();
+        readWrite rw = new readWrite(db);
         TextInputLayout tilEmail = findViewById(R.id.tilEmail);
         TextInputLayout tilPhone = findViewById(R.id.tilPhone);
         MaterialButtonToggleGroup toggle = findViewById(R.id.toggleContactType);
@@ -80,10 +81,10 @@ public class LoginActivity extends AppCompatActivity {
 
                 String password = Objects.requireNonNull(etPassword.getText()).toString();
                 rw.signIn(email, phone, password, user -> {
-                    if (user != null) {
-                        Log.d("Firestore", "Login success");
+                    if (user != null && user.getAdmin() == isAdmin) {
+
                         Intent intent;
-                        if (isAdmin) {
+                        if (user.getAdmin()) {
                             intent = new Intent(LoginActivity.this, AdminDashboardActivity.class);
                         } else {
                             intent = new Intent(LoginActivity.this, EventListActivity.class);
@@ -94,6 +95,14 @@ public class LoginActivity extends AppCompatActivity {
                     } else {
                         Log.d("Firestore", "Login failed");
                         TextView error = findViewById(R.id.error);
+                        if(user != null && user.getAdmin() != isAdmin) {
+                            if(isAdmin)
+                                error.setText("Invalid Login: Please use an admin account");
+                            else
+                                error.setText("Invalid Login: Please use a user account");
+                        } else {
+                            error.setText("Invalid Login: Account/password combination doesn't exist");
+                        }
                         error.setVisibility(View.VISIBLE);
 
                     }

@@ -125,16 +125,23 @@
             app:strokeColor="#4F7EF8"
             app:strokeWidth="3dp" />
 
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" >
+
+        </RelativeLayout>
+
         <TextView
             android:id="@+id/error"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="136dp"
             android:layout_marginBottom="24dp"
             android:text="Invalid login"
-            android:textColor="#F20E0E"
+            android:textAlignment="center"
             android:visibility="gone"
+            android:textColor="#F20E0E"
             android:textSize="16sp" />
+
 
     </LinearLayout>
 </ScrollView>

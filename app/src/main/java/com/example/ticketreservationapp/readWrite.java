@@ -3,19 +3,25 @@ package com.example.ticketreservationapp;
 
 import android.util.Log;
 
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 public class readWrite {
-    FirebaseFirestore db = FirebaseFirestore.getInstance();
-    void registerUser(User user) {
-            db.collection("users").add(user);
+    FirebaseFirestore db;
+
+    public readWrite(FirebaseFirestore db) {
+        this.db = db;
+    }
+    Task<DocumentReference> registerUser(User user) {
+           return db.collection("users").add(user);
     }
 
     void signIn(String etEmail, String etPhone, String etPassword, SignInCallback callback) {
         String field;
         String variable;
-        if(etPhone == null ) {
+        if(etPhone == null || etPhone.isEmpty()) {
             field = "email";
             variable = etEmail;
         } else {
@@ -32,8 +38,12 @@ public class readWrite {
                                 Log.d("Firestore", "Login success. User ID: " + document.getId());
                                 String name = document.getString("name");
                                 Log.d("Firestore", "Welcome " + name);
+                                Log.d("is admin", String.valueOf(document.getBoolean("admin")));
 
                                 User user = task.getResult().getDocuments().get(0).toObject(User.class);
+
+                                assert user != null;
+                                Log.d("is admin", String.valueOf(user.getEmail()));
                                 callback.result(user);
 
                                 break;
