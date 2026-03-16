@@ -1,5 +1,6 @@
 package com.example.ticketreservationapp;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
@@ -10,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public class AdminDashboardActivity extends AppCompatActivity {
 
+    @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -28,9 +30,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
         LinearLayout navEvents       = findViewById(R.id.navEvents);
         Button btnSignOut = findViewById(R.id.signOutbtn);
 
-        btnSignOut.setOnClickListener(v -> {
-            startActivity(new Intent(this, LandingActivity.class));
-        });
+        btnSignOut.setOnClickListener(v -> startActivity(new Intent(this, LandingActivity.class)));
 
         cardAddEvent.setOnClickListener(v ->
                 startActivity(new Intent(this, AddEventActivity.class)));

@@ -57,4 +57,9 @@
     <string name="full_name">Full Name</string>
     <string name="register">Register</string>
     <string name="already_registered_log_in">Already registered? Log in.</string>
+    <string name="events">Events</string>
+    <string name="welcome">Welcome,</string>
+    <string name="sign_out">Sign out</string>
+    <string name="search_events">Search events...</string>
+    <string name="all">All</string>
 </resources>

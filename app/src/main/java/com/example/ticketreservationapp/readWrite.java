@@ -6,9 +6,6 @@ import android.util.Log;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
-
 public class readWrite {
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     void registerUser(User user) {
