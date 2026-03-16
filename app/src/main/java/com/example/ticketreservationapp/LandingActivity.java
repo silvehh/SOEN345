@@ -16,13 +16,13 @@ public class LandingActivity extends AppCompatActivity {
         MaterialButton btnAdminLogin = findViewById(R.id.btnAdminLogin);
 
         btnUserLogin.setOnClickListener(v -> {
-            Intent intent = new Intent(this, MainActivity.class);
+            Intent intent = new Intent(this, LoginActivity.class);
             intent.putExtra("isAdmin", false);
             startActivity(intent);
         });
 
         btnAdminLogin.setOnClickListener(v -> {
-            Intent intent = new Intent(this, MainActivity.class);
+            Intent intent = new Intent(this, LoginActivity.class);
             intent.putExtra("isAdmin", true);
             startActivity(intent);
         });

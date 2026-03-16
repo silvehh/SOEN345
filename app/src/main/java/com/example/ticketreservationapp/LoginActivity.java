@@ -2,14 +2,22 @@ package com.example.ticketreservationapp;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcelable;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firestore.v1.Document;
+
+import java.util.Objects;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -18,12 +26,13 @@ public class LoginActivity extends AppCompatActivity {
 
     boolean isAllFieldsCheck = false;
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         checkAllFields checkClass = new checkAllFields();
-
+        boolean isAdmin = getIntent().getBooleanExtra("isAdmin", false);
         setContentView(R.layout.activity_login);
         readWrite rw = new readWrite();
         TextInputLayout tilEmail = findViewById(R.id.tilEmail);
@@ -64,9 +73,36 @@ public class LoginActivity extends AppCompatActivity {
         btnLogin.setOnClickListener(v -> {
             isAllFieldsCheck = checkClass.CheckAllFields(null, etEmail, etPhone, etPassword, check);
             if(isAllFieldsCheck) {
-                rw.signIn(etEmail, etPhone, etPassword, check);
-                Intent intent = new Intent(LoginActivity.this, EventListActivity.class);
-                startActivity(intent);
+                String email = null;
+                String phone = null;
+                if(check ==R.id.btnEmail ) {
+                    email = Objects.requireNonNull(etEmail.getText()).toString();
+                } else {
+                    phone = Objects.requireNonNull(etPhone.getText()).toString();
+                }
+
+
+                String password = Objects.requireNonNull(etPassword.getText()).toString();
+                rw.signIn(email, phone, password, user -> {
+                    if (user != null) {
+                        Log.d("Firestore", "Login success");
+                        Intent intent;
+                        if (isAdmin) {
+                            intent = new Intent(LoginActivity.this, AdminDashboardActivity.class);
+                        } else {
+                            intent = new Intent(LoginActivity.this, EventListActivity.class);
+                        }
+                        intent.putExtra("user", user);
+                        startActivity(intent);
+                        finish();
+                    } else {
+                        Log.d("Firestore", "Login failed");
+                        TextView error = findViewById(R.id.error);
+                        error.setVisibility(View.VISIBLE);
+
+                    }
+                });
+
             }
 
         });
@@ -76,6 +112,7 @@ public class LoginActivity extends AppCompatActivity {
         Button btnRegister = findViewById(R.id.btnRegister);
         btnRegister.setOnClickListener(v -> {
                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                intent.putExtra("isAdmin", getIntent().getBooleanExtra("isAdmin", false));
                 startActivity(intent);
         });
 

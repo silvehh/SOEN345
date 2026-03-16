@@ -4,21 +4,13 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.Toast;
-
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
-import com.google.firebase.FirebaseApp;
-import com.google.firebase.FirebaseException;
-import com.google.firebase.auth.*;
+
 
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -26,18 +18,18 @@ public class MainActivity extends AppCompatActivity {
     int check = R.id.btnEmail;
     boolean isAllFieldsCheck = false;
 
-    private PhoneAuthProvider.ForceResendingToken resendToken;
+    User user;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         checkAllFields checkClass = new checkAllFields();
 
         super.onCreate(savedInstanceState);
-         //temporary fix, will be dealt with later
+        boolean isAdmin = getIntent().getBooleanExtra("isAdmin", false);
+
         readWrite rw = new readWrite();
         setContentView(R.layout.activity_register);
-
-
         TextInputLayout tilEmail = findViewById(R.id.tilEmail);
         TextInputLayout tilPhone = findViewById(R.id.tilPhone);
         MaterialButtonToggleGroup toggle = findViewById(R.id.toggleContactType);
@@ -88,10 +80,23 @@ public class MainActivity extends AppCompatActivity {
         btnRegister.setOnClickListener(v -> {
             isAllFieldsCheck = checkClass.CheckAllFields(etName, etEmail, etPhone, etPassword, check);
             if(isAllFieldsCheck) {
+                if(check == R.id.btnEmail) {
+                    user = new User(Objects.requireNonNull(etName.getText()).toString(), Objects.requireNonNull(etEmail.getText()).toString(), null, Objects.requireNonNull(etPassword.getText()).toString(), isAdmin, null);
+                } else {
+                    user = new User(Objects.requireNonNull(etName.getText()).toString(), null, Objects.requireNonNull(etPhone.getText()).toString(), Objects.requireNonNull(etPassword.getText()).toString(), isAdmin, null);
+                }
+                rw.registerUser(user);
+                Intent intent;
+                if(isAdmin) {
+                    intent = new Intent(MainActivity.this, AdminDashboardActivity.class);
 
-                rw.registerUser(etName, etEmail, etPhone, etPassword, check);
-                Intent intent = new Intent(MainActivity.this, EventListActivity.class);
+                } else {
+                    intent = new Intent(MainActivity.this, EventListActivity.class);
+
+                }
+                intent.putExtra("user", user);
                 startActivity(intent);
+                finish();
             }
 
         });

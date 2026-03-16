@@ -124,61 +124,17 @@
             android:textSize="15sp"
             app:strokeColor="#4F7EF8"
             app:strokeWidth="3dp" />
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:id="@+id/otpView"
-            android:visibility="gone">
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="24dp"
-                android:text="Enter OTP"
-                android:textAlignment="center"
-                android:textSize="24sp" />
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="You should have received a one-time code to your phone number. please input it here."
-                android:padding="4dp"
-                android:textSize="12sp"
-                />
-            <EditText
-                android:id="@+id/otp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="4dp"
-                android:layout_marginTop="4dp"
-                android:layout_marginRight="4dp"
-                android:layout_marginBottom="16dp"
-                android:fontFamily="sans-serif"
-                android:hint="Enter OTP"
-                android:inputType="textPhonetic" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <Button
-                    android:id="@+id/btnVerify"
-                    android:layout_width="166dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    android:text="Verify"
-                    android:textSize="15sp" />
-
-                <Button
-                    android:id="@+id/btnResend"
-                    android:layout_width="166dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="32dp"
-                    android:layout_marginBottom="16dp"
-                    android:text="Resend"
-                    android:textSize="15sp" />
-            </LinearLayout>
-
-        </LinearLayout>
+        <TextView
+            android:id="@+id/error"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="136dp"
+            android:layout_marginBottom="24dp"
+            android:text="Invalid login"
+            android:textColor="#F20E0E"
+            android:visibility="gone"
+            android:textSize="16sp" />
 
     </LinearLayout>
 </ScrollView>
