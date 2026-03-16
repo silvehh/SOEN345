@@ -40,13 +40,13 @@ public class LandingActivityTest {
     @Test
     public void testUserLoginButtonNavigatesToMainActivity() {
         onView(withId(R.id.btnUserLogin)).perform(click());
-        intended(hasComponent(MainActivity.class.getName()));
+        intended(hasComponent(LoginActivity.class.getName()));
     }
 
     @Test
     public void testAdminLoginButtonNavigatesToMainActivity() {
         onView(withId(R.id.btnAdminLogin)).perform(click());
-        intended(hasComponent(MainActivity.class.getName()));
+        intended(hasComponent(LoginActivity.class.getName()));
     }
 
     @Test
