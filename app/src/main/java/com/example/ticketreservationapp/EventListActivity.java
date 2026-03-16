@@ -1,5 +1,6 @@
 package com.example.ticketreservationapp;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
@@ -10,6 +11,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class EventListActivity extends AppCompatActivity {
 
+    @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -28,9 +30,7 @@ public class EventListActivity extends AppCompatActivity {
 
         Button btnSignOut = findViewById(R.id.signOut);
 
-        btnSignOut.setOnClickListener(v -> {
-            startActivity(new Intent(this, LandingActivity.class));
-        });
+        btnSignOut.setOnClickListener(v -> startActivity(new Intent(this, LandingActivity.class)));
 
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
@@ -38,10 +38,7 @@ public class EventListActivity extends AppCompatActivity {
                 return true;
             } else if (id == R.id.nav_search) {
                 return true;
-            } else if (id == R.id.nav_reservation) {
-                return true;
-            }
-            return false;
+            } else return id == R.id.nav_reservation;
         });
     }
 }
