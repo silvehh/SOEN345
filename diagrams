@@ -1,1 +1,130 @@
+@startuml
+left to right direction
 
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam linetype ortho
+hide empty members
+
+' ---------- Fonts / general style ----------
+skinparam DefaultFontName Arial
+skinparam ClassFontName Arial
+skinparam ArrowFontName Arial
+skinparam PackageFontName Arial
+
+skinparam ClassFontSize 13
+skinparam ArrowFontSize 12
+skinparam PackageFontSize 14
+
+skinparam RoundCorner 8
+skinparam ArrowThickness 1.2
+
+' ---------- Colors ----------
+skinparam BackgroundColor white
+skinparam ClassBackgroundColor #F9FAFB
+skinparam ClassBorderColor #4B5563
+skinparam PackageBorderColor #374151
+skinparam PackageBackgroundColor #FFFFFF
+skinparam ArrowColor #374151
+
+package "Screens" #F5F7FA {
+
+  class LandingActivity {
+    +onCreate(savedInstanceState : Bundle) : void
+  }
+
+  class MainActivity {
+    ~etName : TextInputEditText
+    ~etEmail : TextInputEditText
+    ~etPassword : TextInputEditText
+    ~etPhone : TextInputEditText
+    ~check : int
+    ~isAllFieldsCheck : boolean
+    ~isAdmin : boolean
+    +onCreate(savedInstanceState : Bundle) : void
+  }
+
+  class AdminDashboardActivity {
+    +onCreate(savedInstanceState : Bundle) : void
+  }
+
+  class EventListActivity {
+    +onCreate(savedInstanceState : Bundle) : void
+  }
+
+  class AddEventActivity {
+    -etEventName : TextInputEditText
+    -etDate : TextInputEditText
+    -etTime : TextInputEditText
+    -etVenue : TextInputEditText
+    -etTickets : TextInputEditText
+    -etPrice : TextInputEditText
+    -tilEventName : TextInputLayout
+    -tilVenue : TextInputLayout
+    -tilTickets : TextInputLayout
+    -tilPrice : TextInputLayout
+    -spinnerCategory : Spinner
+    -btnPublish : MaterialButton
+    +onCreate(savedInstanceState : Bundle) : void
+    -initViews() : void
+    -setupCategorySpinner() : void
+    -setupDateTimePickers() : void
+    -validateFields() : boolean
+  }
+
+  class FirstFragment {
+    -binding : FragmentFirstBinding
+    +onCreateView(inflater : LayoutInflater, container : ViewGroup, savedInstanceState : Bundle) : View
+    +onViewCreated(view : View, savedInstanceState : Bundle) : void
+    +onDestroyView() : void
+  }
+
+  class SecondFragment {
+    -binding : FragmentSecondBinding
+    +onCreateView(inflater : LayoutInflater, container : ViewGroup, savedInstanceState : Bundle) : View
+    +onViewCreated(view : View, savedInstanceState : Bundle) : void
+    +onDestroyView() : void
+  }
+
+  LandingActivity -[hidden]down- MainActivity
+  MainActivity -[hidden]down- AdminDashboardActivity
+  AdminDashboardActivity -[hidden]down- EventListActivity
+  EventListActivity -[hidden]down- AddEventActivity
+}
+
+package "Validation / Helpers" #EEF8F0 {
+
+  class checkAllFields {
+    +CheckAllFields(
+      etName : TextInputEditText,
+      etEmail : TextInputEditText,
+      etPhone : TextInputEditText,
+      etPassword : TextInputEditText,
+      check : int
+    ) : boolean
+  }
+}
+
+class AppCompatActivity
+class Fragment
+
+AppCompatActivity <|-- LandingActivity
+AppCompatActivity <|-- MainActivity
+AppCompatActivity <|-- AdminDashboardActivity
+AppCompatActivity <|-- EventListActivity
+AppCompatActivity <|-- AddEventActivity
+
+Fragment <|-- FirstFragment
+Fragment <|-- SecondFragment
+
+LandingActivity ----> MainActivity : launches
+MainActivity ---> checkAllFields : validates input
+MainActivity ----> AdminDashboardActivity : launches
+MainActivity ---> EventListActivity : launches
+AdminDashboardActivity ---> AddEventActivity : launches
+AdminDashboardActivity ---> EventListActivity : launches
+FirstFragment --> SecondFragment : navigates
+SecondFragment --> FirstFragment : navigates
+
+@enduml
