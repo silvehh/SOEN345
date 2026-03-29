@@ -12,8 +12,6 @@ public class User implements Serializable {
     private String password;
     private boolean admin;
     private ArrayList<String> events;
-    public User() {}
-
     public User( String name, String email, String phone, String password, boolean admin, ArrayList<String> events) {
         this.name = name;
         this.email = email;
@@ -21,6 +19,10 @@ public class User implements Serializable {
         this.password = password;
         this.admin = admin;
         this.events = events;
+    }
+
+    public User() {
+
     }
 
     public String getName() {
@@ -50,23 +52,6 @@ public class User implements Serializable {
     public void setName(String name) {
         this.name = name;
     }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public void setAdmin(boolean admin) {
-        this.admin = admin;
-    }
-
     public void setEvents(ArrayList<String> events) {
         this.events = events;
     }

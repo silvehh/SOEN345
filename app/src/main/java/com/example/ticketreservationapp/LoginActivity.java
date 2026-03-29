@@ -47,7 +47,7 @@ public class LoginActivity extends AppCompatActivity {
                     tilPhone.setVisibility(View.VISIBLE);
                     tilEmail.setVisibility(View.GONE);
                 }
-                etPassword = findViewById(R.id.etPassword);
+
                 if(check == R.id.btnEmail) {
                     etEmail = findViewById(R.id.etEmail);
                 } else {
