@@ -144,8 +144,10 @@ public class readWriteTests {
     public void incorrectSignIn() throws Exception {
         DocumentReference ref = Tasks.await(db.collection("users").add(user));
         userIdsToDelete.add(ref.getId());
-        
-        User result = syncSignIn(user2.getEmail(), user2.getPhone(), user2.getPassword());
+
+        // Use a unique invalid password to avoid false positives from leftover emulator data.
+        String invalidPassword = "invalid-" + System.currentTimeMillis();
+        User result = syncSignIn(user.getEmail(), null, invalidPassword);
         Assert.assertNull(result);
     }
 
@@ -184,7 +186,7 @@ public class readWriteTests {
         DocumentReference ref = Tasks.await(rw.addEvent(event));
         String id = ref.getId();
         assertNotNull(id);
-        
+
         // Delete event
         Tasks.await(rw.deleteEvent(id));
         

@@ -75,6 +75,7 @@ public class readWrite {
                         }
                     } else {
                         Log.e("Firestore", "Login error", task.getException());
+                        callback.result(null);
                     }
                 });
 
