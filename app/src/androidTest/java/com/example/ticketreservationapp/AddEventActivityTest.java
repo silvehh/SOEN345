@@ -4,6 +4,7 @@ import androidx.test.espresso.action.ViewActions;
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,12 +19,44 @@ import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 
+import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+
+import java.util.concurrent.TimeUnit;
+
 @RunWith(AndroidJUnit4.class)
 public class AddEventActivityTest {
 
     @Rule
     public ActivityScenarioRule<AddEventActivity> activityRule =
             new ActivityScenarioRule<>(AddEventActivity.class);
+
+    @After
+    public void cleanup() {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        try {
+            // Use emulator if configured in the app
+            db.useEmulator("10.0.2.2", 8080);
+        } catch (IllegalStateException ignored) {}
+
+        try {
+            // Delete test events created by these tests
+            Tasks.await(db.collection("events")
+                    .whereEqualTo("eventName", "Concert")
+                    .get()
+                    .continueWithTask(task -> {
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot doc : task.getResult()) {
+                                doc.getReference().delete();
+                            }
+                        }
+                        return null;
+                    }), 10, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     @Test
     public void testPublishWithEmptyNameShowsError() {
@@ -66,9 +99,6 @@ public class AddEventActivityTest {
         onView(withId(R.id.etPrice)).perform(typeText("75.00"), closeSoftKeyboard());
 
         onView(withId(R.id.btnPublish)).perform(click());
-        
-        // After clicking publish, the activity should finish (if database call is mocked or works quickly)
-        // Note: Real Firestore calls might take time, in a real test environment we'd use IdlingResource or an emulator.
     }
 
     @Test

@@ -22,6 +22,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import org.hamcrest.Matcher;
 import org.junit.After;
@@ -47,9 +48,7 @@ public class EventListActivityTest {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         try {
             db.useEmulator("10.0.2.2", 8080);
-        } catch (IllegalStateException ignored) {
-            // Emulator already set up or settings already applied
-        }
+        } catch (IllegalStateException ignored) {}
     }
 
     private void addDummyEvent() {
@@ -65,6 +64,24 @@ public class EventListActivityTest {
 
     @After
     public void tearDown() {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        try {
+            // Cleanup test events
+            Tasks.await(db.collection("events")
+                    .whereEqualTo("eventName", "Test Intent Event")
+                    .get()
+                    .continueWithTask(task -> {
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot doc : task.getResult()) {
+                                doc.getReference().delete();
+                            }
+                        }
+                        return null;
+                    }), 10, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         try {
             Intents.release();
         } catch (IllegalStateException ignored) {}
@@ -85,10 +102,7 @@ public class EventListActivityTest {
         addDummyEvent();
         
         try (ActivityScenario<EventListActivity> scenario = ActivityScenario.launch(getIntentWithAdminUser())) {
-            // Wait for the event to appear in the list (up to 10 seconds)
             waitForView(withText("Test Intent Event"), 10000);
-
-            // Click the item
             onView(withText("Test Intent Event")).perform(click());
             
             intended(allOf(
@@ -111,7 +125,6 @@ public class EventListActivityTest {
                 } catch (InterruptedException ignored) {}
             }
         }
-        // One last try to throw the exception if still not found
         onView(viewMatcher).check(matches(isDisplayed()));
     }
 
