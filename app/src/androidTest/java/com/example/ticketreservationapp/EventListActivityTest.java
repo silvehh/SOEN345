@@ -4,8 +4,8 @@ import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.intent.Intents.intended;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
-import static androidx.test.espresso.intent.matcher.IntentMatchers.hasExtra;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
+import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.Matchers.allOf;
 
 import android.content.Context;
@@ -16,22 +16,53 @@ import androidx.test.core.app.ApplicationProvider;
 import androidx.test.espresso.intent.Intents;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.firestore.FirebaseFirestore;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.util.concurrent.TimeUnit;
 
 @RunWith(AndroidJUnit4.class)
 public class EventListActivityTest {
 
     @Before
     public void setUp() {
-        Intents.init();
+        try {
+            Intents.init();
+        } catch (IllegalStateException ignored) {}
+        
+        setupFirestoreEmulator();
+    }
+
+    private void setupFirestoreEmulator() {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        try {
+            db.useEmulator("10.0.2.2", 8080);
+        } catch (IllegalStateException ignored) {
+            // Emulator already set up
+        }
+    }
+
+    private void addDummyEvent() {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        readWrite rw = new readWrite(db);
+        Event event = new Event("Test Intent Event", "Music", "12/12/2025", "8:00 PM", "Test Venue", 100, 50.0);
+        try {
+            Tasks.await(rw.addEvent(event), 5, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @After
     public void tearDown() {
-        Intents.release();
+        try {
+            Intents.release();
+        } catch (IllegalStateException ignored) {}
     }
 
     private Intent getIntentWithAdminUser() {
@@ -46,15 +77,14 @@ public class EventListActivityTest {
 
     @Test
     public void testAdminClickingEventNavigatesToEditMode() {
-        // This test assumes at least one event is displayed in the list.
-        // Since we are using Firestore, this might need idling resources or a mock.
-        // For a basic UI intent test, we can launch the activity and click if data exists.
+        addDummyEvent();
         
         try (ActivityScenario<EventListActivity> scenario = ActivityScenario.launch(getIntentWithAdminUser())) {
-            // We wait a bit for Firestore (ideally use IdlingResource)
+            // We wait a bit for Firestore to fetch data
             Thread.sleep(2000); 
 
-            onView(withId(R.id.recyclerEvents)).perform(click());
+            // Click the item with our dummy event name
+            onView(withText("Test Intent Event")).perform(click());
             
             intended(allOf(
                     hasComponent(AddEventActivity.class.getName()),
