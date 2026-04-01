@@ -40,9 +40,10 @@
                     android:layout_marginEnd="5dp"/>
 
                 <TextView
+                    android:id="@+id/adminUser"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="ADMIN"
+                    android:text="ADMIN: "
                     android:textSize="9sp"
                     android:textStyle="bold"
                     android:letterSpacing="0.05"
@@ -59,16 +60,17 @@
         </LinearLayout>
 
         <!-- Avatar -->
-        <TextView
-            android:id="@+id/tvAvatar"
-            android:layout_width="36dp"
+        <Button
+            android:id="@+id/signOutbtn"
+            android:layout_width="60dp"
             android:layout_height="36dp"
-            android:text="AD"
-            android:textSize="12sp"
-            android:textStyle="bold"
-            android:textColor="#FFFFFF"
+            android:background="#6C63FF"
+            android:backgroundTint="#6C63FF"
             android:gravity="center"
-            android:background="#6C63FF"/>
+            android:padding="0dp"
+            android:text="Sign out"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp" />
 
     </LinearLayout>
 

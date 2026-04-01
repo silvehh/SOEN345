@@ -5,7 +5,7 @@ import com.google.android.material.textfield.TextInputEditText;
 public class checkAllFields {
 
     public boolean CheckAllFields(TextInputEditText etName, TextInputEditText etEmail, TextInputEditText etPhone, TextInputEditText etPassword, int check) {
-        if (etName.length() == 0) {
+        if (etName != null && etName.length() == 0) {
             etName.setError("This field is required");
             return false;
         }
@@ -15,22 +15,21 @@ public class checkAllFields {
                 etEmail.setError("Email is required");
                 return false;
             }
-        }
 
-        if (check == R.id.btnPhone) {
+            if (etPassword.length() == 0) {
+                etPassword.setError("Password is required");
+                return false;
+            } else if (etPassword.length() < 8) {
+                etPassword.setError("Password must be minimum 8 characters");
+                return false;
+            }
+        } else if (check == R.id.btnPhone) {
             if (etPhone.length() != 10) {
                 etPhone.setError("Valid phone number is required");
                 return false;
             }
         }
 
-        if (etPassword.length() == 0) {
-            etPassword.setError("Password is required");
-            return false;
-        } else if (etPassword.length() < 8) {
-            etPassword.setError("Password must be minimum 8 characters");
-            return false;
-        }
 
         // after all validation return true.
         return true;
