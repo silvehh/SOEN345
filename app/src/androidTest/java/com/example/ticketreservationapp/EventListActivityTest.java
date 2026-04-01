@@ -2,23 +2,29 @@ package com.example.ticketreservationapp;
 
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
+import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.intent.Intents.intended;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
+import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.Matchers.allOf;
 
 import android.content.Context;
 import android.content.Intent;
+import android.view.View;
 
 import androidx.test.core.app.ActivityScenario;
 import androidx.test.core.app.ApplicationProvider;
+import androidx.test.espresso.NoMatchingViewException;
+import androidx.test.espresso.ViewAssertion;
 import androidx.test.espresso.intent.Intents;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import org.hamcrest.Matcher;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -43,16 +49,19 @@ public class EventListActivityTest {
         try {
             db.useEmulator("10.0.2.2", 8080);
         } catch (IllegalStateException ignored) {
-            // Emulator already set up
+            // Emulator already set up or settings already applied
         }
     }
 
     private void addDummyEvent() {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        readWrite rw = new readWrite(db);
-        Event event = new Event("Test Intent Event", "Music", "12/12/2025", "8:00 PM", "Test Venue", 100, 50.0);
+        // Clear events first to ensure our dummy is there and easy to find
         try {
-            Tasks.await(rw.addEvent(event), 5, TimeUnit.SECONDS);
+            // We can't easily delete a collection in Firestore from client without a loop, 
+            // but we can at least try to add our event.
+            readWrite rw = new readWrite(db);
+            Event event = new Event("Test Intent Event", "Music", "12/12/2025", "8:00 PM", "Test Venue", 100, 50.0);
+            Tasks.await(rw.addEvent(event), 10, TimeUnit.SECONDS);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -80,23 +89,37 @@ public class EventListActivityTest {
         addDummyEvent();
         
         try (ActivityScenario<EventListActivity> scenario = ActivityScenario.launch(getIntentWithAdminUser())) {
-            // We wait a bit for Firestore to fetch data
-            Thread.sleep(2000); 
+            // Wait for the event to appear in the list (up to 10 seconds)
+            waitForView(withText("Test Intent Event"), 10000);
 
-            // Click the item with our dummy event name
+            // Click the item
             onView(withText("Test Intent Event")).perform(click());
             
             intended(allOf(
                     hasComponent(AddEventActivity.class.getName()),
                     hasExtraWithKey("edit_event")
             ));
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
     }
 
-    // Helper matcher because hasExtra(key, value) requires a value
-    private static org.hamcrest.Matcher<Intent> hasExtraWithKey(String key) {
+    private void waitForView(Matcher<View> viewMatcher, long timeout) {
+        long startTime = System.currentTimeMillis();
+        long endTime = startTime + timeout;
+        while (System.currentTimeMillis() < endTime) {
+            try {
+                onView(viewMatcher).check(matches(isDisplayed()));
+                return;
+            } catch (NoMatchingViewException | AssertionError e) {
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException ignored) {}
+            }
+        }
+        // One last try to throw the exception if still not found
+        onView(viewMatcher).check(matches(isDisplayed()));
+    }
+
+    private static Matcher<Intent> hasExtraWithKey(String key) {
         return new org.hamcrest.TypeSafeMatcher<Intent>() {
             @Override
             public void describeTo(org.hamcrest.Description description) {
@@ -104,7 +127,7 @@ public class EventListActivityTest {
             }
             @Override
             protected boolean matchesSafely(Intent item) {
-                return item.hasExtra(key);
+                return item != null && item.hasExtra(key);
             }
         };
     }
