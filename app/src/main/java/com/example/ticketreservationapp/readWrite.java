@@ -35,6 +35,10 @@ public class readWrite {
         return db.collection("events").document(eventId).delete();
     }
 
+    public Task<Void> deleteUser(String userId) {
+        return db.collection("users").document(userId).delete();
+    }
+
     void signIn(String etEmail, String etPhone, String etPassword, SignInCallback callback) {
         String field;
         String variable;
