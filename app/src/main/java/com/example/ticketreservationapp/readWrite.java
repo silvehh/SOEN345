@@ -18,6 +18,10 @@ public class readWrite {
            return db.collection("users").add(user);
     }
 
+    public Task<DocumentReference> addEvent(Event event) {
+        return db.collection("events").add(event);
+    }
+
     void signIn(String etEmail, String etPhone, String etPassword, SignInCallback callback) {
         String field;
         String variable;

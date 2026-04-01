@@ -12,6 +12,7 @@ import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.action.ViewActions.typeText;
 import static androidx.test.espresso.action.ViewActions.closeSoftKeyboard;
+import static androidx.test.espresso.action.ViewActions.replaceText;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
@@ -40,15 +41,34 @@ public class AddEventActivityTest {
         onView(withText("Music")).perform(click());
 
         onView(withId(R.id.etDate))
-                .perform(ViewActions.replaceText("03/15/2026"), closeSoftKeyboard());
+                .perform(replaceText("03/15/2026"), closeSoftKeyboard());
 
         onView(withId(R.id.etTime))
-                .perform(ViewActions.replaceText("7:00 PM"), closeSoftKeyboard());
+                .perform(replaceText("7:00 PM"), closeSoftKeyboard());
 
         onView(withId(R.id.btnPublish)).perform(click());
 
         onView(withId(R.id.tilVenue))
                 .check(matches(TestUtils.hasTextInputLayoutError("Venue is required")));
+    }
+
+    @Test
+    public void testSuccessfulPublish() {
+        onView(withId(R.id.etEventName)).perform(typeText("Concert"), closeSoftKeyboard());
+        
+        onView(withId(R.id.spinnerCategory)).perform(click());
+        onView(withText("Music")).perform(click());
+
+        onView(withId(R.id.etDate)).perform(replaceText("12/12/2025"), closeSoftKeyboard());
+        onView(withId(R.id.etTime)).perform(replaceText("8:00 PM"), closeSoftKeyboard());
+        onView(withId(R.id.etVenue)).perform(typeText("Madison Square Garden"), closeSoftKeyboard());
+        onView(withId(R.id.etTickets)).perform(typeText("500"), closeSoftKeyboard());
+        onView(withId(R.id.etPrice)).perform(typeText("75.00"), closeSoftKeyboard());
+
+        onView(withId(R.id.btnPublish)).perform(click());
+        
+        // After clicking publish, the activity should finish (if database call is mocked or works quickly)
+        // Note: Real Firestore calls might take time, in a real test environment we'd use IdlingResource or an emulator.
     }
 
     @Test

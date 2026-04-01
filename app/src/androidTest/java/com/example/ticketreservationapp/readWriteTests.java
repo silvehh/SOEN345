@@ -27,6 +27,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 @RunWith(AndroidJUnit4.class)
@@ -123,8 +124,29 @@ public class readWriteTests {
         rw.signIn(user2.getEmail(), user2.getPhone(), user2.getPassword(), Assert::assertNull);
     }
 
+    @Test
+    public void testAddEventPersistence() throws InterruptedException, ExecutionException {
+        Event event = new Event("Test Event", "Music", "12/12/2025", "8:00 PM", "Test Venue", 100, 50.0);
+        
+        CountDownLatch latch = new CountDownLatch(1);
+        rw.addEvent(event).addOnCompleteListener(task -> {
+            assertTrue(task.isSuccessful());
+            latch.countDown();
+        });
+        
+        assertTrue(latch.await(5, TimeUnit.SECONDS));
 
-
-
-
+        // Verify it exists in Firestore
+        QuerySnapshot querySnapshot = Tasks.await(db.collection("events")
+                .whereEqualTo("eventName", "Test Event")
+                .get());
+        
+        assertFalse(querySnapshot.isEmpty());
+        DocumentSnapshot doc = querySnapshot.getDocuments().get(0);
+        assertEquals("Test Event", doc.getString("eventName"));
+        assertEquals("Music", doc.getString("category"));
+        assertEquals("Test Venue", doc.getString("venue"));
+        assertEquals(100, doc.getLong("tickets").intValue());
+        assertEquals(50.0, doc.getDouble("price"), 0.001);
+    }
 }

@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.firestore.FirebaseFirestore;
 import android.widget.Spinner;
 
 public class AddEventActivity extends AppCompatActivity {
@@ -15,11 +16,14 @@ public class AddEventActivity extends AppCompatActivity {
     private Spinner spinnerCategory;
     private MaterialButton btnPublish;
     private EventFormHelper formHelper;
+    private readWrite rw;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_event);
+
+        rw = new readWrite(FirebaseFirestore.getInstance());
 
         initViews();
         formHelper = new EventFormHelper(
@@ -44,9 +48,13 @@ public class AddEventActivity extends AppCompatActivity {
         btnPublish.setOnClickListener(v -> {
             if (formHelper.validateFields()) {
                 Event event = formHelper.createEvent();
-                Toast.makeText(this, "Event published!", Toast.LENGTH_SHORT).show();
                 if (event != null) {
-                    finish();
+                    rw.addEvent(event).addOnSuccessListener(documentReference -> {
+                        Toast.makeText(this, "Event published and saved!", Toast.LENGTH_SHORT).show();
+                        finish();
+                    }).addOnFailureListener(e -> {
+                        Toast.makeText(this, "Failed to save event: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
                 }
             }
         });
