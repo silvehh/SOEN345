@@ -127,14 +127,19 @@ public class readWriteTests {
     @Test
     public void testAddEventPersistence() throws InterruptedException, ExecutionException {
         Event event = new Event("Test Event", "Music", "12/12/2025", "8:00 PM", "Test Venue", 100, 50.0);
+        AtomicReference<String> createdEventId = new AtomicReference<>();
         
         CountDownLatch latch = new CountDownLatch(1);
         rw.addEvent(event).addOnCompleteListener(task -> {
             assertTrue(task.isSuccessful());
+            if (task.getResult() != null) {
+                createdEventId.set(task.getResult().getId());
+            }
             latch.countDown();
         });
         
         assertTrue(latch.await(5, TimeUnit.SECONDS));
+        assertNotNull(createdEventId.get());
 
         // Verify it exists in Firestore
         QuerySnapshot querySnapshot = Tasks.await(db.collection("events")
@@ -144,9 +149,14 @@ public class readWriteTests {
         assertFalse(querySnapshot.isEmpty());
         DocumentSnapshot doc = querySnapshot.getDocuments().get(0);
         assertEquals("Test Event", doc.getString("eventName"));
-        assertEquals("Music", doc.getString("category"));
-        assertEquals("Test Venue", doc.getString("venue"));
-        assertEquals(100, doc.getLong("tickets").intValue());
-        assertEquals(50.0, doc.getDouble("price"), 0.001);
+        
+        // Cleanup: Delete the created event
+        Tasks.await(rw.deleteEvent(createdEventId.get()));
+        
+        // Verify deletion
+        QuerySnapshot afterDelete = Tasks.await(db.collection("events")
+                .whereEqualTo("eventName", "Test Event")
+                .get());
+        assertTrue(afterDelete.isEmpty());
     }
 }

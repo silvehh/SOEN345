@@ -1,6 +1,8 @@
 package com.example.ticketreservationapp;
 
 import android.os.Bundle;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButton;
@@ -8,6 +10,8 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.firestore.FirebaseFirestore;
 import android.widget.Spinner;
+
+import java.util.Arrays;
 
 public class AddEventActivity extends AppCompatActivity {
 
@@ -17,6 +21,7 @@ public class AddEventActivity extends AppCompatActivity {
     private MaterialButton btnPublish;
     private EventFormHelper formHelper;
     private readWrite rw;
+    private Event eventToEdit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,12 +48,25 @@ public class AddEventActivity extends AppCompatActivity {
         formHelper.setupCategorySpinner();
         formHelper.setupDateTimePickers();
 
+        eventToEdit = (Event) getIntent().getSerializableExtra("edit_event");
+        if (eventToEdit != null) {
+            setupForEdit(eventToEdit);
+        }
+
         findViewById(R.id.tvBack).setOnClickListener(v -> finish());
 
         btnPublish.setOnClickListener(v -> {
             if (formHelper.validateFields()) {
                 Event event = formHelper.createEvent();
-                if (event != null) {
+                if (eventToEdit != null) {
+                    event.setId(eventToEdit.getId());
+                    rw.updateEvent(event).addOnSuccessListener(aVoid -> {
+                        Toast.makeText(this, "Event updated!", Toast.LENGTH_SHORT).show();
+                        finish();
+                    }).addOnFailureListener(e -> {
+                        Toast.makeText(this, "Failed to update event: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+                } else {
                     rw.addEvent(event).addOnSuccessListener(documentReference -> {
                         Toast.makeText(this, "Event published and saved!", Toast.LENGTH_SHORT).show();
                         finish();
@@ -58,6 +76,24 @@ public class AddEventActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    private void setupForEdit(Event event) {
+        ((TextView) findViewById(R.id.tvTitle)).setText("Edit Event");
+        btnPublish.setText("Update Event");
+
+        etEventName.setText(event.getEventName());
+        etDate.setText(event.getDate());
+        etTime.setText(event.getTime());
+        etVenue.setText(event.getVenue());
+        etTickets.setText(String.valueOf(event.getTickets()));
+        etPrice.setText(String.valueOf(event.getPrice()));
+
+        String[] categories = {"Select category", "Music", "Sports", "Movies", "Travel"};
+        int index = Arrays.asList(categories).indexOf(event.getCategory());
+        if (index >= 0) {
+            spinnerCategory.setSelection(index);
+        }
     }
 
     private void initViews() {
