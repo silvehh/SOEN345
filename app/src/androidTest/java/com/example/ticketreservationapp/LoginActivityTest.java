@@ -40,6 +40,8 @@ public class LoginActivityTest {
 
     @Before
     public void setUp() {
+        Intents.init();
+
         if (FirebaseApp.getApps(InstrumentationRegistry.getInstrumentation().getTargetContext()).isEmpty()) {
             FirebaseApp.initializeApp(InstrumentationRegistry.getInstrumentation().getTargetContext());
         }
@@ -54,14 +56,16 @@ public class LoginActivityTest {
 
         }
 
+        try {
+            FirebaseFirestoreSettings settings =
+                    new FirebaseFirestoreSettings.Builder()
+                            .setPersistenceEnabled(false)
+                            .build();
+            db.setFirestoreSettings(settings);
+        } catch (IllegalStateException ignored) {
+            // Firestore settings can only be set once
+        }
 
-
-
-        FirebaseFirestoreSettings settings =
-                new FirebaseFirestoreSettings.Builder()
-                        .setPersistenceEnabled(false)
-                        .build();
-        db.setFirestoreSettings(settings);
         Map<String, Object> user = new HashMap<>();
         user.put("name", "Test Admin");
         user.put("email", "test@a.com");
@@ -82,7 +86,6 @@ public class LoginActivityTest {
         db.collection("users")
                 .document()
                 .set(user2);
-        Intents.init();
     }
 
     @After

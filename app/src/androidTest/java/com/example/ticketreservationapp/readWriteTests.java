@@ -54,16 +54,20 @@ public class readWriteTests {
         try{
             db.useEmulator("10.0.2.2", 8080);
         }
-        catch (Exception e) {
+        catch (IllegalStateException ignored) {
 
         }
 
 
-        FirebaseFirestoreSettings settings =
-                new FirebaseFirestoreSettings.Builder()
-                        .setPersistenceEnabled(false)
-                        .build();
-        db.setFirestoreSettings(settings);
+        try {
+            FirebaseFirestoreSettings settings =
+                    new FirebaseFirestoreSettings.Builder()
+                            .setPersistenceEnabled(false)
+                            .build();
+            db.setFirestoreSettings(settings);
+        } catch (IllegalStateException ignored) {
+            // Already initialized
+        }
 
         rw = new readWrite(db);
 
