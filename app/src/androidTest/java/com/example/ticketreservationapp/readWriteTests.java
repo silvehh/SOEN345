@@ -159,4 +159,27 @@ public class readWriteTests {
                 .get());
         assertTrue(afterDelete.isEmpty());
     }
+
+    @Test
+    public void testDeleteEvent() throws InterruptedException, ExecutionException {
+        Event event = new Event("Event to Delete", "Sports", "11/11/2025", "6:00 PM", "Stadium", 200, 40.0);
+        
+        // Add event
+        AtomicReference<String> id = new AtomicReference<>();
+        CountDownLatch latch = new CountDownLatch(1);
+        rw.addEvent(event).addOnSuccessListener(doc -> {
+            id.set(doc.getId());
+            latch.countDown();
+        });
+        latch.await(5, TimeUnit.SECONDS);
+        
+        assertNotNull(id.get());
+        
+        // Delete event
+        Tasks.await(rw.deleteEvent(id.get()));
+        
+        // Verify deletion
+        DocumentSnapshot doc = Tasks.await(db.collection("events").document(id.get()).get());
+        assertFalse(doc.exists());
+    }
 }

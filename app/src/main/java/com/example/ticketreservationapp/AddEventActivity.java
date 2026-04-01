@@ -18,7 +18,7 @@ public class AddEventActivity extends AppCompatActivity {
     private TextInputEditText etEventName, etDate, etTime, etVenue, etTickets, etPrice;
     private TextInputLayout tilEventName, tilVenue, tilTickets, tilPrice;
     private Spinner spinnerCategory;
-    private MaterialButton btnPublish;
+    private MaterialButton btnPublish, btnCancelEvent;
     private EventFormHelper formHelper;
     private readWrite rw;
     private Event eventToEdit;
@@ -76,11 +76,23 @@ public class AddEventActivity extends AppCompatActivity {
                 }
             }
         });
+
+        btnCancelEvent.setOnClickListener(v -> {
+            if (eventToEdit != null && eventToEdit.getId() != null) {
+                rw.deleteEvent(eventToEdit.getId()).addOnSuccessListener(aVoid -> {
+                    Toast.makeText(this, "Event cancelled and deleted!", Toast.LENGTH_SHORT).show();
+                    finish();
+                }).addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to cancel event: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
     }
 
     private void setupForEdit(Event event) {
         ((TextView) findViewById(R.id.tvTitle)).setText("Edit Event");
         btnPublish.setText("Update Event");
+        btnCancelEvent.setVisibility(View.VISIBLE);
 
         etEventName.setText(event.getEventName());
         etDate.setText(event.getDate());
@@ -109,5 +121,6 @@ public class AddEventActivity extends AppCompatActivity {
         tilPrice        = findViewById(R.id.tilPrice);
         spinnerCategory = findViewById(R.id.spinnerCategory);
         btnPublish      = findViewById(R.id.btnPublish);
+        btnCancelEvent  = findViewById(R.id.btnCancelEvent);
     }
 }

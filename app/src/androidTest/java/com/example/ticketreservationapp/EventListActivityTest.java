@@ -17,7 +17,6 @@ import android.view.View;
 import androidx.test.core.app.ActivityScenario;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.espresso.NoMatchingViewException;
-import androidx.test.espresso.ViewAssertion;
 import androidx.test.espresso.intent.Intents;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
@@ -55,10 +54,7 @@ public class EventListActivityTest {
 
     private void addDummyEvent() {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        // Clear events first to ensure our dummy is there and easy to find
         try {
-            // We can't easily delete a collection in Firestore from client without a loop, 
-            // but we can at least try to add our event.
             readWrite rw = new readWrite(db);
             Event event = new Event("Test Intent Event", "Music", "12/12/2025", "8:00 PM", "Test Venue", 100, 50.0);
             Tasks.await(rw.addEvent(event), 10, TimeUnit.SECONDS);
