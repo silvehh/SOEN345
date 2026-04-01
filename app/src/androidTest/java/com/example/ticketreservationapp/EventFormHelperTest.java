@@ -92,9 +92,33 @@ public class EventFormHelperTest {
     }
 
     @Test
+    public void setupDateTimePickers_setsClickListeners() {
+        runOnMainSync(() -> {
+            assertFalse(etDate.hasOnClickListeners());
+            assertFalse(etTime.hasOnClickListeners());
+
+            helper.setupDateTimePickers();
+
+            assertTrue(etDate.hasOnClickListeners());
+            assertTrue(etTime.hasOnClickListeners());
+        });
+    }
+
+    @Test
     public void validateFields_returnsFalse_whenEventNameIsEmpty() {
         populateValidFields();
         setText(etEventName, "");
+
+        boolean result = validateOnMainThread();
+
+        assertFalse(result);
+        assertEquals("Event name is required", tilEventName.getError());
+    }
+
+    @Test
+    public void validateFields_returnsFalse_whenEventNameIsWhitespace() {
+        populateValidFields();
+        setText(etEventName, "   ");
 
         boolean result = validateOnMainThread();
 
@@ -176,6 +200,39 @@ public class EventFormHelperTest {
         assertNull(tilVenue.getError());
         assertNull(tilTickets.getError());
         assertNull(tilPrice.getError());
+    }
+
+    @Test
+    public void validateFields_clearsPreviousErrors_whenFieldsBecomeValid() {
+        runOnMainSync(() -> {
+            tilEventName.setError("Old error");
+            tilVenue.setError("Old error");
+            tilTickets.setError("Old error");
+            tilPrice.setError("Old error");
+        });
+
+        populateValidFields();
+        validateOnMainThread();
+
+        assertNull(tilEventName.getError());
+        assertNull(tilVenue.getError());
+        assertNull(tilTickets.getError());
+        assertNull(tilPrice.getError());
+    }
+
+    @Test
+    public void validateFields_stopsAtFirstError_andDoesNotClearSubsequentErrors() {
+        runOnMainSync(() -> {
+            tilVenue.setError("Old venue error");
+        });
+
+        setText(etEventName, ""); // Trigger first error
+
+        boolean result = validateOnMainThread();
+
+        assertFalse(result);
+        assertEquals("Event name is required", tilEventName.getError());
+        assertEquals("Old venue error", tilVenue.getError());
     }
 
     @Test
