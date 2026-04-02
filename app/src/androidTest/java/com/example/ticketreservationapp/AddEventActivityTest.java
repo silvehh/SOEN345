@@ -9,15 +9,18 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static androidx.test.espresso.Espresso.onData;
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
-import static androidx.test.espresso.action.ViewActions.typeText;
 import static androidx.test.espresso.action.ViewActions.closeSoftKeyboard;
 import static androidx.test.espresso.action.ViewActions.replaceText;
+import static androidx.test.espresso.action.ViewActions.typeText;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
-import static androidx.test.espresso.matcher.ViewMatchers.withText;
+import static org.hamcrest.CoreMatchers.allOf;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.is;
 
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -71,8 +74,7 @@ public class AddEventActivityTest {
         onView(withId(R.id.etEventName))
                 .perform(typeText("Jazz Festival"), closeSoftKeyboard());
 
-        onView(withId(R.id.spinnerCategory)).perform(click());
-        onView(withText("Music")).perform(click());
+        selectMusicCategory();
 
         onView(withId(R.id.etDate))
                 .perform(replaceText("03/15/2026"), closeSoftKeyboard());
@@ -89,9 +91,8 @@ public class AddEventActivityTest {
     @Test
     public void testSuccessfulPublish() {
         onView(withId(R.id.etEventName)).perform(typeText("Concert"), closeSoftKeyboard());
-        
-        onView(withId(R.id.spinnerCategory)).perform(click());
-        onView(withText("Music")).perform(click());
+
+        selectMusicCategory();
 
         onView(withId(R.id.etDate)).perform(replaceText("12/12/2025"), closeSoftKeyboard());
         onView(withId(R.id.etTime)).perform(replaceText("8:00 PM"), closeSoftKeyboard());
@@ -100,6 +101,42 @@ public class AddEventActivityTest {
         onView(withId(R.id.etPrice)).perform(typeText("75.00"), closeSoftKeyboard());
 
         onView(withId(R.id.btnPublish)).perform(click());
+    }
+
+    @Test
+    public void testPublishWithNonNumericTicketsShowsError() {
+        onView(withId(R.id.etEventName)).perform(typeText("Concert"), closeSoftKeyboard());
+
+        selectMusicCategory();
+
+        onView(withId(R.id.etDate)).perform(replaceText("12/12/2025"), closeSoftKeyboard());
+        onView(withId(R.id.etTime)).perform(replaceText("8:00 PM"), closeSoftKeyboard());
+        onView(withId(R.id.etVenue)).perform(typeText("Madison Square Garden"), closeSoftKeyboard());
+        onView(withId(R.id.etTickets)).perform(replaceText("five hundred"), closeSoftKeyboard());
+        onView(withId(R.id.etPrice)).perform(typeText("75.00"), closeSoftKeyboard());
+
+        onView(withId(R.id.btnPublish)).perform(click());
+
+        onView(withId(R.id.tilTickets))
+                .check(matches(TestUtils.hasTextInputLayoutError("Ticket count must be a whole number")));
+    }
+
+    @Test
+    public void testPublishWithNonNumericPriceShowsError() {
+        onView(withId(R.id.etEventName)).perform(typeText("Concert"), closeSoftKeyboard());
+
+        selectMusicCategory();
+
+        onView(withId(R.id.etDate)).perform(replaceText("12/12/2025"), closeSoftKeyboard());
+        onView(withId(R.id.etTime)).perform(replaceText("8:00 PM"), closeSoftKeyboard());
+        onView(withId(R.id.etVenue)).perform(typeText("Madison Square Garden"), closeSoftKeyboard());
+        onView(withId(R.id.etTickets)).perform(typeText("500"), closeSoftKeyboard());
+        onView(withId(R.id.etPrice)).perform(replaceText("free"), closeSoftKeyboard());
+
+        onView(withId(R.id.btnPublish)).perform(click());
+
+        onView(withId(R.id.tilPrice))
+                .check(matches(TestUtils.hasTextInputLayoutError("Price must be a valid number")));
     }
 
     @Test
@@ -122,5 +159,10 @@ public class AddEventActivityTest {
         onView(withId(R.id.tilTickets)).check(matches(isDisplayed()));
         onView(withId(R.id.tilPrice)).check(matches(isDisplayed()));
         onView(withId(R.id.btnPublish)).check(matches(isDisplayed()));
+    }
+
+    private void selectMusicCategory() {
+        onView(withId(R.id.spinnerCategory)).perform(click());
+        onData(allOf(is(instanceOf(String.class)), is("Music"))).perform(click());
     }
 }

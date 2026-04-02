@@ -106,14 +106,24 @@ public class EventFormHelper {
         }
         tilVenue.setError(null);
 
-        if (getTrimmedText(etTickets).isEmpty()) {
+        String ticketsValue = getTrimmedText(etTickets);
+        if (ticketsValue.isEmpty()) {
             tilTickets.setError("Ticket count is required");
+            return false;
+        }
+        if (!isWholeNumber(ticketsValue)) {
+            tilTickets.setError("Ticket count must be a whole number");
             return false;
         }
         tilTickets.setError(null);
 
-        if (getTrimmedText(etPrice).isEmpty()) {
+        String priceValue = getTrimmedText(etPrice);
+        if (priceValue.isEmpty()) {
             tilPrice.setError("Price is required");
+            return false;
+        }
+        if (!isValidDecimal(priceValue)) {
+            tilPrice.setError("Price must be a valid number");
             return false;
         }
         tilPrice.setError(null);
@@ -144,5 +154,23 @@ public class EventFormHelper {
             return "";
         }
         return input.getText().toString().trim();
+    }
+
+    private boolean isWholeNumber(String value) {
+        try {
+            Integer.parseInt(value);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    private boolean isValidDecimal(String value) {
+        try {
+            Double.parseDouble(value);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 }

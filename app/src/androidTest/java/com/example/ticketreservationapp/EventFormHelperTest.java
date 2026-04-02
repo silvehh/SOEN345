@@ -2,7 +2,6 @@ package com.example.ticketreservationapp;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.fail;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -190,6 +189,28 @@ public class EventFormHelperTest {
     }
 
     @Test
+    public void validateFields_returnsFalse_whenTicketsAreNotNumeric() {
+        populateValidFields();
+        setText(etTickets, "two hundred");
+
+        boolean result = validateOnMainThread();
+
+        assertFalse(result);
+        assertEquals("Ticket count must be a whole number", tilTickets.getError());
+    }
+
+    @Test
+    public void validateFields_returnsFalse_whenPriceIsNotNumeric() {
+        populateValidFields();
+        setText(etPrice, "free");
+
+        boolean result = validateOnMainThread();
+
+        assertFalse(result);
+        assertEquals("Price must be a valid number", tilPrice.getError());
+    }
+
+    @Test
     public void validateFields_returnsTrue_whenAllFieldsAreValid() {
         populateValidFields();
 
@@ -268,32 +289,6 @@ public class EventFormHelperTest {
         assertEquals("Place des Arts", event.getVenue());
         assertEquals(250, event.getTickets());
         assertEquals(79.99, event.getPrice(), 0.001);
-    }
-
-    @Test
-    public void createEvent_throwsWhenTicketsAreNotNumeric() {
-        populateValidFields();
-        setText(etTickets, "two hundred");
-
-        try {
-            createEventOnMainThread();
-            fail("Expected NumberFormatException");
-        } catch (NumberFormatException expected) {
-            assertTrue(true);
-        }
-    }
-
-    @Test
-    public void createEvent_throwsWhenPriceIsNotNumeric() {
-        populateValidFields();
-        setText(etPrice, "free");
-
-        try {
-            createEventOnMainThread();
-            fail("Expected NumberFormatException");
-        } catch (NumberFormatException expected) {
-            assertTrue(true);
-        }
     }
 
     private void populateValidFields() {
