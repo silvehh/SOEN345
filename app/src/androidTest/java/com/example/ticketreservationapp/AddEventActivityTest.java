@@ -1,10 +1,10 @@
 package com.example.ticketreservationapp;
 
-import androidx.test.espresso.action.ViewActions;
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.After;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,17 +28,18 @@ import java.util.concurrent.TimeUnit;
 @RunWith(AndroidJUnit4.class)
 public class AddEventActivityTest {
 
+    @BeforeClass
+    public static void configureFirestore() {
+        TestUtils.getTestFirestore();
+    }
+
     @Rule
     public ActivityScenarioRule<AddEventActivity> activityRule =
             new ActivityScenarioRule<>(AddEventActivity.class);
 
     @After
     public void cleanup() {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        try {
-            // Use emulator if configured in the app
-            db.useEmulator("10.0.2.2", 8080);
-        } catch (IllegalStateException ignored) {}
+        FirebaseFirestore db = TestUtils.getTestFirestore();
 
         try {
             // Delete test events created by these tests
