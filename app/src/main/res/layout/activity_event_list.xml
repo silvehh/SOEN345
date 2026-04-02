@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- activity_event_list.xml – Sprint 1, Task (b): Browse Events -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -10,7 +9,6 @@
     <!-- Header -->
     <LinearLayout
         android:layout_width="match_parent"
-
         android:orientation="horizontal"
         android:background="#FFFFFF"
         android:layout_height="78dp">
@@ -47,7 +45,6 @@
             android:textSize="11sp" />
     </LinearLayout>
 
-
     <!-- Search Bar -->
     <EditText
         android:id="@+id/etSearch"
@@ -55,17 +52,81 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="12dp"
+        android:layout_marginBottom="8dp"
         android:hint="@string/search_events"
-        android:padding="10dp" />
+        android:padding="10dp"
+        android:inputType="text" />
 
-    <!-- Filter Chips -->
+    <!-- Filter Options Row (Date and Location) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginEnd="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Filter by Date"
+                android:textSize="12sp"
+                android:textColor="#666666" />
+
+            <Spinner
+                android:id="@+id/spinnerDate"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:background="@android:drawable/btn_dropdown" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Filter by Location"
+                android:textSize="12sp"
+                android:textColor="#666666" />
+
+            <Spinner
+                android:id="@+id/spinnerLocation"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:background="@android:drawable/btn_dropdown" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Clear Filters Button -->
+    <Button
+        android:id="@+id/btnClearFilters"
+        android:layout_width="wrap_content"
+        android:layout_height="36dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="8dp"
+        android:text="Clear Filters"
+        android:textSize="12sp"
+        android:visibility="gone" />
+
+    <!-- Category Filter Chips -->
     <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:scrollbars="none"
         android:layout_marginStart="16dp"
-        android:layout_marginBottom="12dp">
+        android:layout_marginBottom="8dp">
 
         <com.google.android.material.chip.ChipGroup
             android:id="@+id/chipGroupFilters"
@@ -118,16 +179,43 @@
         </com.google.android.material.chip.ChipGroup>
     </HorizontalScrollView>
 
-    <!-- Section label -->
-    <TextView
-        android:layout_width="wrap_content"
+    <!-- Section label with results count -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="UPCOMING"
-        android:textSize="11sp"
-        android:textColor="#888888"
-        android:textStyle="bold"
+        android:orientation="horizontal"
         android:layout_marginStart="16dp"
-        android:layout_marginBottom="8dp" />
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="UPCOMING"
+            android:textSize="11sp"
+            android:textColor="#888888"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvResultsCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="11sp"
+            android:textColor="#888888"
+            android:layout_marginStart="8dp" />
+    </LinearLayout>
+
+    <!-- No Results Message -->
+    <TextView
+        android:id="@+id/tvNoResults"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="No events found matching your filters"
+        android:textSize="16sp"
+        android:textColor="#888888"
+        android:gravity="center"
+        android:padding="32dp"
+        android:visibility="gone" />
 
     <!-- Events List -->
     <androidx.recyclerview.widget.RecyclerView

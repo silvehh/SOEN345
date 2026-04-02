@@ -6,8 +6,12 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -15,6 +19,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -22,7 +28,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -36,6 +41,15 @@ public class EventListActivity extends AppCompatActivity implements EventAdapter
     private readWrite rw;
     private User currentUser;
 
+    private EventFilterHelper filterHelper;
+    private EditText etSearch;
+    private Spinner spinnerDate;
+    private Spinner spinnerLocation;
+    private Button btnClearFilters;
+    private ChipGroup chipGroupFilters;
+    private TextView tvResultsCount;
+    private TextView tvNoResults;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,12 +60,26 @@ public class EventListActivity extends AppCompatActivity implements EventAdapter
 
         initViews();
         setupRecyclerView();
+        setupUserWelcome();
+        setupBottomNavigation();
+        
+        filterHelper = new EventFilterHelper(allEvents);
         fetchEvents();
-        setupSearch();
+    }
 
-        BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
-        bottomNav.setSelectedItemId(R.id.nav_home);
+    private void initViews() {
+        recyclerEvents = findViewById(R.id.recyclerEvents);
+        etSearch = findViewById(R.id.etSearch);
+        spinnerDate = findViewById(R.id.spinnerDate);
+        spinnerLocation = findViewById(R.id.spinnerLocation);
+        btnClearFilters = findViewById(R.id.btnClearFilters);
+        chipGroupFilters = findViewById(R.id.chipGroupFilters);
+        tvResultsCount = findViewById(R.id.tvResultsCount);
+        tvNoResults = findViewById(R.id.tvNoResults);
+    }
 
+    @SuppressLint("SetTextI18n")
+    private void setupUserWelcome() {
         TextView welcome = findViewById(R.id.welcomeText);
         if (currentUser != null) {
             welcome.setText("Welcome, " + currentUser.getName());
@@ -62,10 +90,6 @@ public class EventListActivity extends AppCompatActivity implements EventAdapter
             startActivity(new Intent(this, LandingActivity.class));
             finishAffinity();
         });
-    }
-
-    private void initViews() {
-        recyclerEvents = findViewById(R.id.recyclerEvents);
     }
 
     private void setupRecyclerView() {
@@ -83,9 +107,16 @@ public class EventListActivity extends AppCompatActivity implements EventAdapter
                     allEvents.add(event);
                 }
                 sortEventsByDate(allEvents);
-                filteredEvents.clear();
-                filteredEvents.addAll(allEvents);
-                adapter.notifyDataSetChanged();
+                filterHelper.setAllEvents(allEvents);
+                
+                // Setup filters after events are loaded
+                setupSearchFilter();
+                setupDateFilter();
+                setupLocationFilter();
+                setupCategoryChips();
+                setupClearFiltersButton();
+                
+                applyFilters();
             } else {
                 Log.e("Firestore", "Error getting events", task.getException());
                 Toast.makeText(this, "Failed to load events", Toast.LENGTH_SHORT).show();
@@ -107,15 +138,15 @@ public class EventListActivity extends AppCompatActivity implements EventAdapter
         });
     }
 
-    private void setupSearch() {
-        EditText etSearch = findViewById(R.id.etSearch);
+    private void setupSearchFilter() {
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                filter(s.toString());
+                filterHelper.setSearchQuery(s.toString());
+                applyFilters();
             }
 
             @Override
@@ -123,18 +154,124 @@ public class EventListActivity extends AppCompatActivity implements EventAdapter
         });
     }
 
-    private void filter(String text) {
-        filteredEvents.clear();
-        if (text.isEmpty()) {
-            filteredEvents.addAll(allEvents);
-        } else {
-            for (Event event : allEvents) {
-                if (event.getEventName().toLowerCase().contains(text.toLowerCase())) {
-                    filteredEvents.add(event);
+    private void setupDateFilter() {
+        List<String> dates = new ArrayList<>();
+        dates.add("All Dates");
+        dates.addAll(filterHelper.getAllDates());
+
+        ArrayAdapter<String> dateAdapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, dates);
+        dateAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerDate.setAdapter(dateAdapter);
+
+        spinnerDate.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String selectedDate = position == 0 ? "" : dates.get(position);
+                filterHelper.setSelectedDate(selectedDate);
+                applyFilters();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+    }
+
+    private void setupLocationFilter() {
+        List<String> locations = new ArrayList<>();
+        locations.add("All Locations");
+        locations.addAll(filterHelper.getAllLocations());
+
+        ArrayAdapter<String> locationAdapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, locations);
+        locationAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerLocation.setAdapter(locationAdapter);
+
+        spinnerLocation.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String selectedLocation = position == 0 ? "" : locations.get(position);
+                filterHelper.setSelectedLocation(selectedLocation);
+                applyFilters();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+    }
+
+    private void setupCategoryChips() {
+        chipGroupFilters.setOnCheckedStateChangeListener((group, checkedIds) -> {
+            if (checkedIds.isEmpty()) {
+                filterHelper.setSelectedCategory("All");
+            } else {
+                Chip selectedChip = findViewById(checkedIds.get(0));
+                if (selectedChip != null) {
+                    filterHelper.setSelectedCategory(selectedChip.getText().toString());
                 }
             }
+            applyFilters();
+        });
+    }
+
+    private void setupClearFiltersButton() {
+        btnClearFilters.setOnClickListener(v -> clearAllFilters());
+    }
+
+    private void clearAllFilters() {
+        etSearch.setText("");
+        spinnerDate.setSelection(0);
+        spinnerLocation.setSelection(0);
+        
+        Chip chipAll = findViewById(R.id.chipAll);
+        if (chipAll != null) {
+            chipAll.setChecked(true);
         }
+        
+        filterHelper.clearAllFilters();
+        applyFilters();
+    }
+
+    @SuppressLint("SetTextI18n")
+    private void applyFilters() {
+        List<Event> filtered = filterHelper.applyFilters();
+        filteredEvents.clear();
+        filteredEvents.addAll(filtered);
         adapter.notifyDataSetChanged();
+
+        // Update results count
+        int count = filtered.size();
+        tvResultsCount.setText("(" + count + " results)");
+
+        // Show/hide no results message
+        if (count == 0) {
+            tvNoResults.setVisibility(View.VISIBLE);
+            recyclerEvents.setVisibility(View.GONE);
+        } else {
+            tvNoResults.setVisibility(View.GONE);
+            recyclerEvents.setVisibility(View.VISIBLE);
+        }
+
+        // Show/hide clear filters button
+        if (filterHelper.hasActiveFilters()) {
+            btnClearFilters.setVisibility(View.VISIBLE);
+        } else {
+            btnClearFilters.setVisibility(View.GONE);
+        }
+    }
+
+    private void setupBottomNavigation() {
+        BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
+        bottomNav.setSelectedItemId(R.id.nav_home);
+
+        bottomNav.setOnItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.nav_home) {
+                return true;
+            } else if (id == R.id.nav_search) {
+                return true;
+            } else return id == R.id.nav_reservation;
+        });
     }
 
     @Override
@@ -144,7 +281,6 @@ public class EventListActivity extends AppCompatActivity implements EventAdapter
             intent.putExtra("edit_event", event);
             startActivity(intent);
         } else {
-            // User view: navigate to event details or booking
             Toast.makeText(this, "Selected: " + event.getEventName(), Toast.LENGTH_SHORT).show();
         }
     }
@@ -152,6 +288,6 @@ public class EventListActivity extends AppCompatActivity implements EventAdapter
     @Override
     protected void onResume() {
         super.onResume();
-        fetchEvents(); // Refresh list on return
+        fetchEvents();
     }
 }
