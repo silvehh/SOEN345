@@ -8,6 +8,7 @@ import androidx.test.platform.app.InstrumentationRegistry;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreSettings;
 
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -27,6 +28,14 @@ public class TestUtils {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         try {
             db.useEmulator(FIRESTORE_EMULATOR_HOST, FIRESTORE_EMULATOR_PORT);
+        } catch (IllegalStateException ignored) {
+        }
+        try {
+            FirebaseFirestoreSettings settings =
+                    new FirebaseFirestoreSettings.Builder()
+                            .setPersistenceEnabled(false)
+                            .build();
+            db.setFirestoreSettings(settings);
         } catch (IllegalStateException ignored) {
         }
         return db;
