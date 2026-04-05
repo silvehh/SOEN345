@@ -55,4 +55,20 @@ public class User implements Serializable {
     public void setEvents(ArrayList<String> events) {
         this.events = events;
     }
+
+    public void setAdmin(boolean admin) {
+        this.admin = admin;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
 }

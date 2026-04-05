@@ -29,12 +29,16 @@ public class LandingActivityTest {
 
     @Before
     public void setUp() {
-        Intents.init();
+        try {
+            Intents.init();
+        } catch (IllegalStateException ignored) {}
     }
 
     @After
     public void tearDown() {
-        Intents.release();
+        try {
+            Intents.release();
+        } catch (IllegalStateException ignored) {}
     }
 
     @Test

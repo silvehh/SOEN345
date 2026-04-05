@@ -54,6 +54,7 @@
 
         <!-- Title -->
         <TextView
+            android:id="@+id/tvTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Add Event"
@@ -212,6 +213,23 @@
             android:textColor="#FFFFFF"
             app:backgroundTint="#6C63FF"
             app:cornerRadius="26dp"/>
+
+        <View android:layout_width="match_parent" android:layout_height="12dp"/>
+
+        <!-- Cancel/Delete Button (Visible only in Edit mode) -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCancelEvent"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="Cancel Event"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="#FF5252"
+            android:visibility="gone"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            app:cornerRadius="26dp"
+            app:strokeColor="#FF5252"
+            app:strokeWidth="1dp"/>
 
     </LinearLayout>
 </ScrollView>

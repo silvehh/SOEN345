@@ -32,16 +32,28 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
         btnSignOut.setOnClickListener(v -> startActivity(new Intent(this, LandingActivity.class)));
 
-        cardAddEvent.setOnClickListener(v ->
-                startActivity(new Intent(this, AddEventActivity.class)));
+        cardAddEvent.setOnClickListener(v -> {
+            Intent intent = new Intent(this, AddEventActivity.class);
+            intent.putExtra("user", user);
+            startActivity(intent);
+        });
 
-        cardEditEvent.setOnClickListener(v ->
-                startActivity(new Intent(this, EventListActivity.class)));
+        cardEditEvent.setOnClickListener(v -> {
+            Intent intent = new Intent(this, EventListActivity.class);
+            intent.putExtra("user", user);
+            startActivity(intent);
+        });
 
-        cardCancelEvent.setOnClickListener(v ->
-                startActivity(new Intent(this, EventListActivity.class)));
+        cardCancelEvent.setOnClickListener(v -> {
+            Intent intent = new Intent(this, EventListActivity.class);
+            intent.putExtra("user", user);
+            startActivity(intent);
+        });
 
-        navEvents.setOnClickListener(v ->
-                startActivity(new Intent(this, EventListActivity.class)));
+        navEvents.setOnClickListener(v -> {
+            Intent intent = new Intent(this, EventListActivity.class);
+            intent.putExtra("user", user);
+            startActivity(intent);
+        });
     }
 }

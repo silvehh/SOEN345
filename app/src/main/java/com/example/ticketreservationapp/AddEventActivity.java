@@ -1,25 +1,34 @@
 package com.example.ticketreservationapp;
 
 import android.os.Bundle;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.firestore.FirebaseFirestore;
 import android.widget.Spinner;
+
+import java.util.Arrays;
 
 public class AddEventActivity extends AppCompatActivity {
 
     private TextInputEditText etEventName, etDate, etTime, etVenue, etTickets, etPrice;
     private TextInputLayout tilEventName, tilVenue, tilTickets, tilPrice;
     private Spinner spinnerCategory;
-    private MaterialButton btnPublish;
+    private MaterialButton btnPublish, btnCancelEvent;
     private EventFormHelper formHelper;
+    private readWrite rw;
+    private Event eventToEdit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_event);
+
+        rw = new readWrite(FirebaseFirestore.getInstance());
 
         initViews();
         formHelper = new EventFormHelper(
@@ -39,17 +48,71 @@ public class AddEventActivity extends AppCompatActivity {
         formHelper.setupCategorySpinner();
         formHelper.setupDateTimePickers();
 
+        eventToEdit = (Event) getIntent().getSerializableExtra("edit_event");
+        if (eventToEdit != null) {
+            setupForEdit(eventToEdit);
+        }
+
         findViewById(R.id.tvBack).setOnClickListener(v -> finish());
 
         btnPublish.setOnClickListener(v -> {
             if (formHelper.validateFields()) {
-                Event event = formHelper.createEvent();
-                Toast.makeText(this, "Event published!", Toast.LENGTH_SHORT).show();
-                if (event != null) {
-                    finish();
+                Event event;
+                try {
+                    event = formHelper.createEvent();
+                } catch (NumberFormatException e) {
+                    Toast.makeText(this, "Please enter valid ticket and price values", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (eventToEdit != null) {
+                    event.setId(eventToEdit.getId());
+                    rw.updateEvent(event).addOnSuccessListener(aVoid -> {
+                        Toast.makeText(this, "Event updated!", Toast.LENGTH_SHORT).show();
+                        finish();
+                    }).addOnFailureListener(e -> {
+                        Toast.makeText(this, "Failed to update event: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+                } else {
+                    rw.addEvent(event).addOnSuccessListener(documentReference -> {
+                        Toast.makeText(this, "Event published and saved!", Toast.LENGTH_SHORT).show();
+                        finish();
+                    }).addOnFailureListener(e -> {
+                        Toast.makeText(this, "Failed to save event: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
                 }
             }
         });
+
+        btnCancelEvent.setOnClickListener(v -> {
+            if (eventToEdit != null && eventToEdit.getId() != null) {
+                rw.deleteEvent(eventToEdit.getId()).addOnSuccessListener(aVoid -> {
+                    Toast.makeText(this, "Event cancelled and deleted!", Toast.LENGTH_SHORT).show();
+                    finish();
+                }).addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to cancel event: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
+    }
+
+    private void setupForEdit(Event event) {
+        ((TextView) findViewById(R.id.tvTitle)).setText("Edit Event");
+        btnPublish.setText("Update Event");
+        btnCancelEvent.setVisibility(View.VISIBLE);
+
+        etEventName.setText(event.getEventName());
+        etDate.setText(event.getDate());
+        etTime.setText(event.getTime());
+        etVenue.setText(event.getVenue());
+        etTickets.setText(String.valueOf(event.getTickets()));
+        etPrice.setText(String.valueOf(event.getPrice()));
+
+        String[] categories = {"Select category", "Music", "Sports", "Movies", "Travel"};
+        int index = Arrays.asList(categories).indexOf(event.getCategory());
+        if (index >= 0) {
+            spinnerCategory.setSelection(index);
+        }
     }
 
     private void initViews() {
@@ -65,5 +128,6 @@ public class AddEventActivity extends AppCompatActivity {
         tilPrice        = findViewById(R.id.tilPrice);
         spinnerCategory = findViewById(R.id.spinnerCategory);
         btnPublish      = findViewById(R.id.btnPublish);
+        btnCancelEvent  = findViewById(R.id.btnCancelEvent);
     }
 }

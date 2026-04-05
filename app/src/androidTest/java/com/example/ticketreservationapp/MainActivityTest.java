@@ -36,6 +36,10 @@ public class MainActivityTest {
 
     @Before
     public void setUp() {
+        try {
+            Intents.init();
+        } catch (IllegalStateException ignored) {}
+
         if (FirebaseApp.getApps(InstrumentationRegistry.getInstrumentation().getTargetContext()).isEmpty()) {
             FirebaseApp.initializeApp(InstrumentationRegistry.getInstrumentation().getTargetContext());
         }
@@ -46,25 +50,24 @@ public class MainActivityTest {
         try{
             db.useEmulator("10.0.2.2", 8080);
         }
-        catch (Exception e) {
-
+        catch (IllegalStateException ignored) {
         }
 
-
-
-
-        FirebaseFirestoreSettings settings =
-                new FirebaseFirestoreSettings.Builder()
-                        .setPersistenceEnabled(false)
-                        .build();
-        db.setFirestoreSettings(settings);
-
-        Intents.init();
+        try {
+            FirebaseFirestoreSettings settings =
+                    new FirebaseFirestoreSettings.Builder()
+                            .setPersistenceEnabled(false)
+                            .build();
+            db.setFirestoreSettings(settings);
+        } catch (IllegalStateException ignored) {
+        }
     }
 
     @After
     public void tearDown() {
-        Intents.release();
+        try {
+            Intents.release();
+        } catch (IllegalStateException ignored) {}
     }
 
     @Test

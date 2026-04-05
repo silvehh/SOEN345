@@ -4,6 +4,7 @@ package com.example.ticketreservationapp;
 import android.util.Log;
 
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -16,6 +17,26 @@ public class readWrite {
     }
     Task<DocumentReference> registerUser(User user) {
            return db.collection("users").add(user);
+    }
+
+    public Task<DocumentReference> addEvent(Event event) {
+        return db.collection("events").add(event);
+    }
+
+    public CollectionReference getEventsCollection() {
+        return db.collection("events");
+    }
+
+    public Task<Void> updateEvent(Event event) {
+        return db.collection("events").document(event.getId()).set(event);
+    }
+
+    public Task<Void> deleteEvent(String eventId) {
+        return db.collection("events").document(eventId).delete();
+    }
+
+    public Task<Void> deleteUser(String userId) {
+        return db.collection("users").document(userId).delete();
     }
 
     void signIn(String etEmail, String etPhone, String etPassword, SignInCallback callback) {
@@ -54,6 +75,7 @@ public class readWrite {
                         }
                     } else {
                         Log.e("Firestore", "Login error", task.getException());
+                        callback.result(null);
                     }
                 });
 
