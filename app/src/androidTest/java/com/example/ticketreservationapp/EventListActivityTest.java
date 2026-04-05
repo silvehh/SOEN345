@@ -1,14 +1,17 @@
 package com.example.ticketreservationapp;
 
+import static androidx.test.espresso.action.ViewActions.closeSoftKeyboard;
+import static androidx.test.espresso.action.ViewActions.replaceText;
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
-import static androidx.test.espresso.action.ViewActions.typeText;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.intent.Intents.intended;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.not;
 
@@ -16,6 +19,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.view.View;
 
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.test.core.app.ActivityScenario;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.espresso.NoMatchingViewException;
@@ -25,6 +29,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import org.hamcrest.Matcher;
 import org.junit.After;
@@ -32,33 +37,34 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 @RunWith(AndroidJUnit4.class)
 public class EventListActivityTest {
+
+    private final List<String> eventNamesToDelete = new ArrayList<>();
 
     @Before
     public void setUp() {
         try {
             Intents.init();
         } catch (IllegalStateException ignored) {}
-        
-        setupFirestoreEmulator();
-    }
 
-    private void setupFirestoreEmulator() {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        try {
-            db.useEmulator("10.0.2.2", 8080);
-        } catch (IllegalStateException ignored) {}
+        TestUtils.getTestFirestore();
     }
 
     private void addDummyEvent(String name, String date) {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
         try {
+            FirebaseFirestore db = TestUtils.getTestFirestore();
             readWrite rw = new readWrite(db);
             Event event = new Event(name, "Music", date, "8:00 PM", "Test Venue", 100, 50.0);
             Tasks.await(rw.addEvent(event), 10, TimeUnit.SECONDS);
+            eventNamesToDelete.add(name);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -66,22 +72,18 @@ public class EventListActivityTest {
 
     @After
     public void tearDown() {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
         try {
-            // Cleanup test events
-            Tasks.await(db.collection("events")
-                    .get()
-                    .continueWithTask(task -> {
-                        if (task.isSuccessful()) {
-                            for (QueryDocumentSnapshot doc : task.getResult()) {
-                                String name = doc.getString("eventName");
-                                if (name != null && (name.contains("Test Intent Event") || name.contains("Sort Event") || name.contains("Search Event"))) {
-                                    doc.getReference().delete();
-                                }
-                            }
-                        }
-                        return null;
-                    }), 10, TimeUnit.SECONDS);
+            FirebaseFirestore db = TestUtils.getTestFirestore();
+            for (String eventName : eventNamesToDelete) {
+                QuerySnapshot snapshot = Tasks.await(
+                        db.collection("events").whereEqualTo("eventName", eventName).get(),
+                        10,
+                        TimeUnit.SECONDS
+                );
+                for (QueryDocumentSnapshot doc : snapshot) {
+                    Tasks.await(doc.getReference().delete(), 10, TimeUnit.SECONDS);
+                }
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -103,11 +105,12 @@ public class EventListActivityTest {
 
     @Test
     public void testAdminClickingEventNavigatesToEditMode() {
-        addDummyEvent("Test Intent Event", "12/12/2025");
+        String eventName = uniqueEventName("Test Intent Event");
+        addDummyEvent(eventName, "12/12/2025");
         
         try (ActivityScenario<EventListActivity> scenario = ActivityScenario.launch(getIntentWithUser(true))) {
-            waitForView(withText("Test Intent Event"), 10000);
-            onView(withText("Test Intent Event")).perform(click());
+            waitForView(withText(eventName), 10000);
+            onView(withText(eventName)).perform(click());
             
             intended(allOf(
                     hasComponent(AddEventActivity.class.getName()),
@@ -118,11 +121,12 @@ public class EventListActivityTest {
 
     @Test
     public void testNonAdminClickingEventShowsToast() {
-        addDummyEvent("Test Intent Event", "12/12/2025");
+        String eventName = uniqueEventName("Test Intent Event");
+        addDummyEvent(eventName, "12/12/2025");
         
         try (ActivityScenario<EventListActivity> scenario = ActivityScenario.launch(getIntentWithUser(false))) {
-            waitForView(withText("Test Intent Event"), 10000);
-            onView(withText("Test Intent Event")).perform(click());
+            waitForView(withText(eventName), 10000);
+            onView(withText(eventName)).perform(click());
             
             // Note: Verifying Toasts in Espresso can be flaky, but we can verify we didn't navigate.
             // Check that we are still in EventListActivity.
@@ -139,34 +143,38 @@ public class EventListActivityTest {
 
     @Test
     public void testSearchFiltersEvents() {
-        addDummyEvent("Search Event Alpha", "01/01/2026");
-        addDummyEvent("Search Event Beta", "02/01/2026");
+        String suffix = String.valueOf(System.currentTimeMillis());
+        String alphaName = "Search Event Alpha " + suffix;
+        String betaName = "Search Event Beta " + suffix;
+        addDummyEvent(alphaName, "01/01/2026");
+        addDummyEvent(betaName, "02/01/2026");
 
         try (ActivityScenario<EventListActivity> scenario = ActivityScenario.launch(getIntentWithUser(false))) {
-            waitForView(withText("Search Event Alpha"), 10000);
-            waitForView(withText("Search Event Beta"), 10000);
+            waitForAdapterToContain(scenario, Arrays.asList(alphaName, betaName), 10000);
 
-            onView(withId(R.id.etSearch)).perform(typeText("Alpha"));
+            onView(withId(R.id.etSearch)).perform(replaceText(alphaName), closeSoftKeyboard());
 
-            onView(withText("Search Event Alpha")).check(matches(isDisplayed()));
-            // Beta should no longer be visible (or at least not with this text)
-            // Note: In a real scenario, you might want to check the adapter size or that Beta is not in the hierarchy.
+            waitForAdapterEventNames(scenario, Arrays.asList(alphaName), 10000);
+            assertEquals(Arrays.asList(alphaName), getAdapterEventNames(scenario));
         }
     }
 
     @Test
     public void testSortingByDate() {
-        addDummyEvent("Sort Event Later", "12/31/2025");
-        addDummyEvent("Sort Event Earlier", "01/01/2025");
+        String suffix = String.valueOf(System.currentTimeMillis());
+        String groupName = "Sort Group " + suffix;
+        String laterName = groupName + " Later";
+        String earlierName = groupName + " Earlier";
+        addDummyEvent(laterName, "12/31/2025");
+        addDummyEvent(earlierName, "01/01/2025");
 
         try (ActivityScenario<EventListActivity> scenario = ActivityScenario.launch(getIntentWithUser(false))) {
-            waitForView(withText("Sort Event Earlier"), 10000);
-            waitForView(withText("Sort Event Later"), 10000);
-            
-            // This is harder to verify with just Espresso without custom matchers, 
-            // but we ensure both are loaded and date parsing didn't crash.
-            onView(withText("Sort Event Earlier")).check(matches(isDisplayed()));
-            onView(withText("Sort Event Later")).check(matches(isDisplayed()));
+            waitForAdapterToContain(scenario, Arrays.asList(earlierName, laterName), 10000);
+
+            onView(withId(R.id.etSearch)).perform(replaceText(groupName), closeSoftKeyboard());
+
+            waitForAdapterEventNames(scenario, Arrays.asList(earlierName, laterName), 10000);
+            assertEquals(Arrays.asList(earlierName, laterName), getAdapterEventNames(scenario));
         }
     }
 
@@ -184,6 +192,70 @@ public class EventListActivityTest {
             }
         }
         onView(viewMatcher).check(matches(isDisplayed()));
+    }
+
+    private void waitForAdapterToContain(ActivityScenario<EventListActivity> scenario, List<String> expectedNames, long timeout) {
+        long endTime = System.currentTimeMillis() + timeout;
+        while (System.currentTimeMillis() < endTime) {
+            List<String> currentNames = getAdapterEventNames(scenario);
+            if (currentNames.containsAll(expectedNames)) {
+                return;
+            }
+            sleepBriefly();
+        }
+        fail("Timed out waiting for adapter to contain: " + expectedNames + ". Current: " + getAdapterEventNames(scenario));
+    }
+
+    private void waitForAdapterEventNames(ActivityScenario<EventListActivity> scenario, List<String> expectedNames, long timeout) {
+        long endTime = System.currentTimeMillis() + timeout;
+        while (System.currentTimeMillis() < endTime) {
+            List<String> currentNames = getAdapterEventNames(scenario);
+            if (currentNames.equals(expectedNames)) {
+                return;
+            }
+            sleepBriefly();
+        }
+        fail("Timed out waiting for exact adapter names: " + expectedNames + ". Current: " + getAdapterEventNames(scenario));
+    }
+
+    private List<String> getAdapterEventNames(ActivityScenario<EventListActivity> scenario) {
+        AtomicReference<List<String>> namesRef = new AtomicReference<>(new ArrayList<>());
+        scenario.onActivity(activity -> {
+            RecyclerView recyclerView = activity.findViewById(R.id.recyclerEvents);
+            EventAdapter adapter = (EventAdapter) recyclerView.getAdapter();
+            namesRef.set(readAdapterEventNames(adapter));
+        });
+        return namesRef.get();
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<String> readAdapterEventNames(EventAdapter adapter) {
+        List<String> names = new ArrayList<>();
+        if (adapter == null) {
+            return names;
+        }
+
+        try {
+            Field eventListField = EventAdapter.class.getDeclaredField("eventList");
+            eventListField.setAccessible(true);
+            List<Event> events = (List<Event>) eventListField.get(adapter);
+            for (Event event : events) {
+                names.add(event.getEventName());
+            }
+            return names;
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError("Unable to inspect recycler adapter contents", e);
+        }
+    }
+
+    private String uniqueEventName(String prefix) {
+        return prefix + " " + System.currentTimeMillis();
+    }
+
+    private void sleepBriefly() {
+        try {
+            Thread.sleep(250);
+        } catch (InterruptedException ignored) {}
     }
 
     private static Matcher<Intent> hasExtraWithKey(String key) {

@@ -57,7 +57,14 @@ public class AddEventActivity extends AppCompatActivity {
 
         btnPublish.setOnClickListener(v -> {
             if (formHelper.validateFields()) {
-                Event event = formHelper.createEvent();
+                Event event;
+                try {
+                    event = formHelper.createEvent();
+                } catch (NumberFormatException e) {
+                    Toast.makeText(this, "Please enter valid ticket and price values", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 if (eventToEdit != null) {
                     event.setId(eventToEdit.getId());
                     rw.updateEvent(event).addOnSuccessListener(aVoid -> {
