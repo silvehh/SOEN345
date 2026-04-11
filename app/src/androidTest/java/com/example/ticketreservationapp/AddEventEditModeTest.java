@@ -1,5 +1,5 @@
 package com.example.ticketreservationapp;
-
+import static androidx.test.espresso.action.ViewActions.scrollTo;
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
@@ -51,8 +51,10 @@ public class AddEventEditModeTest {
         Event event = new Event("Original Name", "Music", "01/01/2025", "10:00 AM", "Original Venue", 100, 20.0);
         event.setId("test_event_id");
         try (ActivityScenario<AddEventActivity> scenario = ActivityScenario.launch(getEditIntent(event))) {
+            onView(withId(R.id.btnCancelEvent)).perform(scrollTo());
             onView(withId(R.id.btnCancelEvent)).check(matches(isDisplayed()));
             onView(withId(R.id.tvTitle)).check(matches(withText("Edit Event")));
+            onView(withId(R.id.btnPublish)).perform(scrollTo());
             onView(withId(R.id.btnPublish)).check(matches(withText("Update Event")));
         }
     }
@@ -73,7 +75,7 @@ public class AddEventEditModeTest {
 
         try (ActivityScenario<AddEventActivity> scenario = ActivityScenario.launch(getEditIntent(event))) {
             scenario.onActivity(activity -> injectReadWrite(activity, fakeReadWrite));
-            onView(withId(R.id.btnCancelEvent)).perform(click());
+            onView(withId(R.id.btnCancelEvent)).perform(scrollTo(), click());
 
             waitForCondition(() -> fakeReadWrite.getDeleteCallCount() == 1, 5000,
                     "Timed out waiting for cancel flow to call deleteEvent()");

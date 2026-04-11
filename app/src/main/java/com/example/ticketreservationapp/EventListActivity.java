@@ -201,8 +201,28 @@ public class EventListActivity extends AppCompatActivity implements EventAdapter
     }
 
     private void setupCategoryChips() {
+        int[] chipIds = {
+                R.id.chipAll, R.id.chipMusic, R.id.chipSports, R.id.chipMovies, R.id.chipTravel
+        };
+
         chipGroupFilters.setOnCheckedStateChangeListener((group, checkedIds) -> {
+            // Update visual state manually for all chips
+            for (int id : chipIds) {
+                Chip chip = findViewById(id);
+                if (chip != null) {
+                    chip.setChipBackgroundColorResource(
+                            checkedIds.contains(id) ? R.color.chip_selected : R.color.chip_unselected
+                    );
+                    chip.setTextColor(checkedIds.contains(id)
+                            ? getColor(android.R.color.white)
+                            : getColor(android.R.color.black));
+                }
+            }
+
             if (checkedIds.isEmpty()) {
+                // Nothing selected — snap back to All
+                Chip chipAll = findViewById(R.id.chipAll);
+                if (chipAll != null) chipAll.setChecked(true);
                 filterHelper.setSelectedCategory("All");
             } else {
                 Chip selectedChip = findViewById(checkedIds.get(0));

@@ -9,40 +9,48 @@
     <!-- Header -->
     <LinearLayout
         android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:background="#FFFFFF"
-        android:layout_height="78dp">
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="24dp"
+        android:paddingBottom="12dp"
+        android:gravity="center_vertical">
+
         <TextView
-            android:layout_width="wrap_content"
+            android:id="@+id/tvTitle"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="@string/events"
             android:textSize="30sp"
             android:textStyle="bold"
-            android:textColor="#111111"
-            android:layout_marginStart="25dp"
-            android:layout_marginTop="30dp"
-            android:layout_marginBottom="12dp" />
+            android:textColor="#111111" />
 
-        <TextView
-            android:id="@+id/welcomeText"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/welcome"
-            android:textSize="15sp"
-            android:textColor="#111111"
-            android:layout_marginStart="110dp"
-            android:layout_marginTop="30dp"
-            android:layout_marginBottom="12dp" />
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
 
-        <Button
-            android:id="@+id/signOut"
-            android:layout_width="60dp"
-            android:layout_height="40dp"
-            android:layout_marginTop="30dp"
-            android:layout_marginBottom="12dp"
-            android:padding="0dp"
-            android:text="@string/sign_out"
-            android:textSize="11sp" />
+            <TextView
+                android:id="@+id/welcomeText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/welcome"
+                android:textSize="13sp"
+                android:textColor="#555555" />
+
+            <Button
+                android:id="@+id/signOut"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/sign_out"
+                android:textSize="12sp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp" />
+        </LinearLayout>
     </LinearLayout>
 
     <!-- Search Bar -->
@@ -57,7 +65,7 @@
         android:padding="10dp"
         android:inputType="text" />
 
-    <!-- Filter Options Row (Date and Location) -->
+    <!-- Filter Options Row -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -77,14 +85,25 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Filter by Date"
-                android:textSize="12sp"
-                android:textColor="#666666" />
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="#444444"
+                android:layout_marginBottom="4dp" />
 
-            <Spinner
-                android:id="@+id/spinnerDate"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="40dp"
-                android:background="@android:drawable/btn_dropdown" />
+                android:layout_height="44dp"
+                android:background="@drawable/spinner_background"
+                android:gravity="center_vertical"
+                android:paddingStart="12dp"
+                android:paddingEnd="4dp">
+
+                <Spinner
+                    android:id="@+id/spinnerDate"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@null" />
+            </LinearLayout>
         </LinearLayout>
 
         <LinearLayout
@@ -98,14 +117,25 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Filter by Location"
-                android:textSize="12sp"
-                android:textColor="#666666" />
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="#444444"
+                android:layout_marginBottom="4dp" />
 
-            <Spinner
-                android:id="@+id/spinnerLocation"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="40dp"
-                android:background="@android:drawable/btn_dropdown" />
+                android:layout_height="44dp"
+                android:background="@drawable/spinner_background"
+                android:gravity="center_vertical"
+                android:paddingStart="12dp"
+                android:paddingEnd="4dp">
+
+                <Spinner
+                    android:id="@+id/spinnerLocation"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@null" />
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 
@@ -120,7 +150,7 @@
         android:textSize="12sp"
         android:visibility="gone" />
 
-    <!-- Category Filter Chips -->
+    <!-- Category Chips -->
     <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -139,8 +169,6 @@
                 style="@style/Widget.MaterialComponents.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:chipBackgroundColor="@color/chip_selected"
-                android:textColor="#FFFFFF"
                 android:text="@string/all"
                 android:checked="true" />
 
@@ -148,7 +176,6 @@
                 android:id="@+id/chipMusic"
                 style="@style/Widget.MaterialComponents.Chip.Filter"
                 android:layout_width="wrap_content"
-                app:chipBackgroundColor="@color/chip_unselected"
                 android:layout_height="wrap_content"
                 android:text="Music" />
 
@@ -156,7 +183,6 @@
                 android:id="@+id/chipSports"
                 style="@style/Widget.MaterialComponents.Chip.Filter"
                 android:layout_width="wrap_content"
-                app:chipBackgroundColor="@color/chip_unselected"
                 android:layout_height="wrap_content"
                 android:text="Sports" />
 
@@ -164,7 +190,6 @@
                 android:id="@+id/chipMovies"
                 style="@style/Widget.MaterialComponents.Chip.Filter"
                 android:layout_width="wrap_content"
-                app:chipBackgroundColor="@color/chip_unselected"
                 android:layout_height="wrap_content"
                 android:text="Movies" />
 
@@ -172,14 +197,13 @@
                 android:id="@+id/chipTravel"
                 style="@style/Widget.MaterialComponents.Chip.Filter"
                 android:layout_width="wrap_content"
-                app:chipBackgroundColor="@color/chip_unselected"
                 android:layout_height="wrap_content"
                 android:text="Travel" />
 
         </com.google.android.material.chip.ChipGroup>
     </HorizontalScrollView>
 
-    <!-- Section label with results count -->
+    <!-- Section label -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -205,28 +229,33 @@
             android:layout_marginStart="8dp" />
     </LinearLayout>
 
-    <!-- No Results Message -->
-    <TextView
-        android:id="@+id/tvNoResults"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="No events found matching your filters"
-        android:textSize="16sp"
-        android:textColor="#888888"
-        android:gravity="center"
-        android:padding="32dp"
-        android:visibility="gone" />
-
-    <!-- Events List -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerEvents"
+    <!-- Content area -->
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:clipToPadding="false"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+        android:layout_weight="1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerEvents"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:clipToPadding="false"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+        <TextView
+            android:id="@+id/tvNoResults"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="No events found matching your filters"
+            android:textSize="16sp"
+            android:textColor="#888888"
+            android:gravity="center"
+            android:padding="32dp"
+            android:visibility="gone" />
+
+    </FrameLayout>
 
     <!-- Bottom Navigation -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
