@@ -86,8 +86,8 @@ public class readWriteTests {
     private User syncSignIn(String email, String phone, String password) throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
         AtomicReference<User> result = new AtomicReference<>();
-        rw.signIn(email, phone, password, user -> {
-            result.set(user);
+        rw.signIn(email, phone, password, u -> {
+            result.set(u);
             latch.countDown();
         });
         if (!latch.await(10, TimeUnit.SECONDS)) {
@@ -98,9 +98,9 @@ public class readWriteTests {
 
     @Test
     public void registerAndSignInUserEmail() throws Exception {
-        DocumentReference ref = Tasks.await(rw.registerUser(user));
+        DocumentReference ref = Tasks.await(rw.registerUser(user), 10, TimeUnit.SECONDS);
         userIdsToDelete.add(ref.getId());
-        
+
         User newUser = syncSignIn(user.getEmail(), user.getPhone(), user.getPassword());
         assertNotNull(newUser);
         assertEquals(user.getEmail(), newUser.getEmail());
@@ -109,7 +109,7 @@ public class readWriteTests {
 
     @Test
     public void registerAndSignInUserPhone() throws Exception {
-        DocumentReference ref = Tasks.await(rw.registerUser(user2));
+        DocumentReference ref = Tasks.await(rw.registerUser(user2), 10, TimeUnit.SECONDS);
         userIdsToDelete.add(ref.getId());
 
         User newUser = syncSignIn(user2.getEmail(), user2.getPhone(), user2.getPassword());
@@ -120,7 +120,7 @@ public class readWriteTests {
 
     @Test
     public void registerAndSignInAdminEmail() throws Exception {
-        DocumentReference ref = Tasks.await(rw.registerUser(admin));
+        DocumentReference ref = Tasks.await(rw.registerUser(admin), 10, TimeUnit.SECONDS);
         userIdsToDelete.add(ref.getId());
 
         User newUser = syncSignIn(admin.getEmail(), admin.getPhone(), admin.getPassword());
@@ -131,7 +131,7 @@ public class readWriteTests {
 
     @Test
     public void registerAndSignInAdminPhone() throws Exception {
-        DocumentReference ref = Tasks.await(rw.registerUser(admin2));
+        DocumentReference ref = Tasks.await(rw.registerUser(admin2), 10, TimeUnit.SECONDS);
         userIdsToDelete.add(ref.getId());
 
         User newUser = syncSignIn(admin2.getEmail(), admin2.getPhone(), admin2.getPassword());
@@ -142,10 +142,9 @@ public class readWriteTests {
 
     @Test
     public void incorrectSignIn() throws Exception {
-        DocumentReference ref = Tasks.await(db.collection("users").add(user));
+        DocumentReference ref = Tasks.await(db.collection("users").add(user), 10, TimeUnit.SECONDS);
         userIdsToDelete.add(ref.getId());
 
-        // Use a unique invalid password to avoid false positives from leftover emulator data.
         String invalidPassword = "invalid-" + System.currentTimeMillis();
         User result = syncSignIn(user.getEmail(), null, invalidPassword);
         Assert.assertNull(result);
@@ -154,44 +153,40 @@ public class readWriteTests {
     @Test
     public void testAddEventPersistence() throws Exception {
         Event event = new Event("Test Event", "Music", "12/12/2025", "8:00 PM", "Test Venue", 100, 50.0);
-        
-        DocumentReference ref = Tasks.await(rw.addEvent(event));
+
+        DocumentReference ref = Tasks.await(rw.addEvent(event), 10, TimeUnit.SECONDS);
         String createdEventId = ref.getId();
         assertNotNull(createdEventId);
 
-        // Verify it exists in Firestore
-        QuerySnapshot querySnapshot = Tasks.await(db.collection("events")
-                .whereEqualTo("eventName", "Test Event")
-                .get());
-        
+        QuerySnapshot querySnapshot = Tasks.await(
+                db.collection("events").whereEqualTo("eventName", "Test Event").get(),
+                10, TimeUnit.SECONDS);
+
         assertFalse(querySnapshot.isEmpty());
         DocumentSnapshot doc = querySnapshot.getDocuments().get(0);
         assertEquals("Test Event", doc.getString("eventName"));
-        
-        // Cleanup: Delete the created event
-        Tasks.await(rw.deleteEvent(createdEventId));
-        
-        // Verify deletion
-        QuerySnapshot afterDelete = Tasks.await(db.collection("events")
-                .whereEqualTo("eventName", "Test Event")
-                .get());
+
+        Tasks.await(rw.deleteEvent(createdEventId), 10, TimeUnit.SECONDS);
+
+        QuerySnapshot afterDelete = Tasks.await(
+                db.collection("events").whereEqualTo("eventName", "Test Event").get(),
+                10, TimeUnit.SECONDS);
         assertTrue(afterDelete.isEmpty());
     }
 
     @Test
     public void testDeleteEvent() throws Exception {
         Event event = new Event("Event to Delete", "Sports", "11/11/2025", "6:00 PM", "Stadium", 200, 40.0);
-        
-        // Add event
-        DocumentReference ref = Tasks.await(rw.addEvent(event));
+
+        DocumentReference ref = Tasks.await(rw.addEvent(event), 10, TimeUnit.SECONDS);
         String id = ref.getId();
         assertNotNull(id);
 
-        // Delete event
-        Tasks.await(rw.deleteEvent(id));
-        
-        // Verify deletion
-        DocumentSnapshot doc = Tasks.await(db.collection("events").document(id).get());
+        Tasks.await(rw.deleteEvent(id), 10, TimeUnit.SECONDS);
+
+        DocumentSnapshot doc = Tasks.await(
+                db.collection("events").document(id).get(),
+                10, TimeUnit.SECONDS);
         assertFalse(doc.exists());
     }
 }
