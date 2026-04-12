@@ -34,6 +34,7 @@ jobs:
         run: ./gradlew testDebugUnitTest jacocoTestCoverageVerification --no-daemon
 
       - name: Run instrumentation tests on emulator
+        if: always()
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 34
@@ -49,25 +50,38 @@ jobs:
           python3 - <<'PY'
           import os
           import pathlib
+          import csv
           import sys
-          import xml.etree.ElementTree as ET
 
-          report = pathlib.Path("app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml")
+          report = pathlib.Path("app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.csv")
           summary_path = pathlib.Path(os.environ["GITHUB_STEP_SUMMARY"])
 
           if not report.exists():
               summary_path.write_text("### Test Coverage\n\nJacoco report not found.\n", encoding="utf-8")
               sys.exit(0)
 
-          root = ET.parse(report).getroot()
-          line_counter = next((counter for counter in root.iter("counter") if counter.attrib.get("type") == "LINE"), None)
-
-          if line_counter is None:
+          rows = list(csv.reader(report.read_text(encoding="utf-8").splitlines()))
+          if len(rows) < 2:
               summary_path.write_text("### Test Coverage\n\nLine coverage data was not found.\n", encoding="utf-8")
               sys.exit(0)
 
-          covered = int(line_counter.attrib["covered"])
-          missed = int(line_counter.attrib["missed"])
+          header = rows[0]
+
+          try:
+              line_missed_index = header.index("LINE_MISSED")
+              line_covered_index = header.index("LINE_COVERED")
+              missed = 0
+              covered = 0
+
+              for row in rows[1:]:
+                  if len(row) <= max(line_missed_index, line_covered_index):
+                      continue
+                  missed += int(row[line_missed_index])
+                  covered += int(row[line_covered_index])
+          except (ValueError, IndexError):
+              summary_path.write_text("### Test Coverage\n\nLine coverage data was not found.\n", encoding="utf-8")
+              sys.exit(0)
+
           total = covered + missed
           percent = (covered / total * 100.0) if total else 0.0
 

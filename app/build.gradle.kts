@@ -3,8 +3,6 @@ import java.util.Locale
 import org.gradle.api.GradleException
 import org.gradle.testing.jacoco.tasks.JacocoReport
 
-import javax.xml.parsers.DocumentBuilderFactory
-
 plugins {
     alias(libs.plugins.android.application)
     id("com.google.gms.google-services")
@@ -62,10 +60,11 @@ tasks.register<JacocoReport>("jacocoTestReport") {
 
     reports {
         xml.required.set(true)
+        csv.required.set(true)
         html.required.set(true)
     }
 
-    val classFiles = fileTree("$buildDir/intermediates/javac/debug/classes") {
+    val classFiles = fileTree("$buildDir/intermediates/javac/debug/compileDebugJavaWithJavac/classes") {
         exclude(
             "**/R.class",
             "**/R$*.class",
@@ -92,34 +91,36 @@ tasks.register("jacocoTestCoverageVerification") {
     dependsOn("jacocoTestReport")
 
     doLast {
-        val reportFile = file("$buildDir/reports/jacoco/jacocoTestReport/jacocoTestReport.xml")
+        val reportFile = file("$buildDir/reports/jacoco/jacocoTestReport/jacocoTestReport.csv")
         if (!reportFile.exists()) {
             throw GradleException("Jacoco report not found at ${reportFile.absolutePath}")
         }
 
-        val factory = DocumentBuilderFactory.newInstance().apply {
-            setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
-            setFeature("http://xml.org/sax/features/external-general-entities", false)
-            setFeature("http://xml.org/sax/features/external-parameter-entities", false)
-            isXIncludeAware = false
-            isExpandEntityReferences = false
-            isValidating = false
+        val reportLines = reportFile.readLines().filter { it.isNotBlank() }
+        if (reportLines.size < 2) {
+            throw GradleException("No line coverage data was found in the Jacoco report")
         }
 
-        val document = factory.newDocumentBuilder().parse(reportFile)
-        val counters = document.getElementsByTagName("counter")
+        val header = reportLines.first().split(',')
+        val lineMissedIndex = header.indexOf("LINE_MISSED")
+        val lineCoveredIndex = header.indexOf("LINE_COVERED")
+        if (lineMissedIndex == -1 || lineCoveredIndex == -1) {
+            throw GradleException("No line coverage data was found in the Jacoco report")
+        }
 
-        var covered = 0L
         var missed = 0L
+        var covered = 0L
 
-        for (index in 0 until counters.length) {
-            val node = counters.item(index)
-            val type = node.attributes?.getNamedItem("type")?.nodeValue
-            if (type == "LINE") {
-                covered = node.attributes.getNamedItem("covered").nodeValue.toLong()
-                missed = node.attributes.getNamedItem("missed").nodeValue.toLong()
-                break
+        for (dataLine in reportLines.drop(1)) {
+            val values = dataLine.split(',')
+            if (values.size <= maxOf(lineMissedIndex, lineCoveredIndex)) {
+                continue
             }
+
+            missed += values[lineMissedIndex].toLongOrNull()
+                ?: throw GradleException("No line coverage data was found in the Jacoco report")
+            covered += values[lineCoveredIndex].toLongOrNull()
+                ?: throw GradleException("No line coverage data was found in the Jacoco report")
         }
 
         val total = covered + missed
