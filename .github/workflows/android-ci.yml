@@ -39,6 +39,30 @@ jobs:
       - name: Run unit tests and generate coverage report
         run: ./gradlew testDebugUnitTest jacocoTestCoverageVerification --no-daemon
 
+      - name: Cache Android emulator
+        id: avd-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-api33-pixel5
+
+      - name: Create AVD snapshot
+        if: steps.avd-cache.outputs.cache-hit != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          target: google_apis
+          arch: x86_64
+          profile: pixel_5
+          force-avd-creation: false
+          emulator-boot-timeout: 1200
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front none
+          disable-animations: false
+          disable-spellchecker: false
+          script: echo "Generated AVD snapshot for caching."
+
       - name: Run instrumentation tests on emulator
         if: always()
         uses: reactivecircus/android-emulator-runner@v2
@@ -47,8 +71,9 @@ jobs:
           target: google_apis
           arch: x86_64
           profile: pixel_5
+          force-avd-creation: false
           emulator-boot-timeout: 1200
-          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none -camera-front none
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front none
           disable-animations: true
           disable-spellchecker: true
           script: ./gradlew connectedDebugAndroidTest createDebugCoverageReport --no-daemon
