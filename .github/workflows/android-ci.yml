@@ -60,7 +60,7 @@ jobs:
               sys.exit(0)
 
           root = ET.parse(report).getroot()
-          line_counter = next((counter for counter in root.findall("counter") if counter.attrib.get("type") == "LINE"), None)
+          line_counter = next((counter for counter in root.iter("counter") if counter.attrib.get("type") == "LINE"), None)
 
           if line_counter is None:
               summary_path.write_text("### Test Coverage\n\nLine coverage data was not found.\n", encoding="utf-8")

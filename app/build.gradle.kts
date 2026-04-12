@@ -1,8 +1,9 @@
 import java.util.Locale
-import kotlin.text.Regex
 
 import org.gradle.api.GradleException
 import org.gradle.testing.jacoco.tasks.JacocoReport
+
+import javax.xml.parsers.DocumentBuilderFactory
 
 plugins {
     alias(libs.plugins.android.application)
@@ -96,12 +97,31 @@ tasks.register("jacocoTestCoverageVerification") {
             throw GradleException("Jacoco report not found at ${reportFile.absolutePath}")
         }
 
-        val reportText = reportFile.readText()
-        val lineCounter = Regex("""<counter type="LINE" missed="(\d+)" covered="(\d+)"\s*/>""").find(reportText)
-            ?: throw GradleException("No line coverage data was found in the Jacoco report")
+        val factory = DocumentBuilderFactory.newInstance().apply {
+            setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
+            setFeature("http://xml.org/sax/features/external-general-entities", false)
+            setFeature("http://xml.org/sax/features/external-parameter-entities", false)
+            isXIncludeAware = false
+            isExpandEntityReferences = false
+            isValidating = false
+        }
 
-        val missed = lineCounter.groupValues[1].toLong()
-        val covered = lineCounter.groupValues[2].toLong()
+        val document = factory.newDocumentBuilder().parse(reportFile)
+        val counters = document.getElementsByTagName("counter")
+
+        var covered = 0L
+        var missed = 0L
+
+        for (index in 0 until counters.length) {
+            val node = counters.item(index)
+            val type = node.attributes?.getNamedItem("type")?.nodeValue
+            if (type == "LINE") {
+                covered = node.attributes.getNamedItem("covered").nodeValue.toLong()
+                missed = node.attributes.getNamedItem("missed").nodeValue.toLong()
+                break
+            }
+        }
+
         val total = covered + missed
         if (total == 0L) {
             throw GradleException("No line coverage data was found in the Jacoco report")
