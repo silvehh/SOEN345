@@ -40,6 +40,7 @@ jobs:
         run: ./gradlew testDebugUnitTest jacocoTestCoverageVerification --no-daemon
 
       - name: Cache Android emulator
+        if: always()
         id: avd-cache
         uses: actions/cache@v4
         with:
@@ -49,7 +50,7 @@ jobs:
           key: avd-api33-pixel5
 
       - name: Create AVD snapshot
-        if: steps.avd-cache.outputs.cache-hit != 'true'
+        if: always() && steps.avd-cache.outputs.cache-hit != 'true'
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 33
@@ -57,7 +58,7 @@ jobs:
           arch: x86_64
           profile: pixel_5
           force-avd-creation: false
-          emulator-boot-timeout: 1200
+          emulator-boot-timeout: 8
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front none
           disable-animations: false
           disable-spellchecker: false
@@ -72,7 +73,7 @@ jobs:
           arch: x86_64
           profile: pixel_5
           force-avd-creation: false
-          emulator-boot-timeout: 1200
+          emulator-boot-timeout: 8
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front none
           disable-animations: true
           disable-spellchecker: true
