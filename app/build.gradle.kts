@@ -83,7 +83,41 @@ tasks.register<JacocoReport>("jacocoTestReport") {
     )
 }
 
-tasks.named("testDebugUnitTest") {
+tasks.register<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
+    dependsOn("testDebugUnitTest")
+
+    val classFiles = fileTree("$buildDir/intermediates/javac/debug/classes") {
+        exclude(
+            "**/R.class",
+            "**/R$*.class",
+            "**/BuildConfig.*",
+            "**/Manifest*.*",
+            "**/*Test*.*",
+            "android/**/*.*"
+        )
+    }
+
+    classDirectories.setFrom(files(classFiles))
+    sourceDirectories.setFrom(files("src/main/java"))
+    executionData.setFrom(
+        fileTree(buildDir) {
+            include(
+                "jacoco/testDebugUnitTest.exec",
+                "outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec"
+            )
+        }
+    )
+
+    violationRules {
+        rule {
+            limit {
+                minimum = BigDecimal("0.80")
+            }
+        }
+    }
+}
+
+tasks.matching { it.name == "testDebugUnitTest" }.configureEach {
     finalizedBy("jacocoTestReport")
 }
 
