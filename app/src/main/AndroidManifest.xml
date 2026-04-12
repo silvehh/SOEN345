@@ -25,6 +25,7 @@
         <activity android:name=".LoginActivity" />
         <activity android:name=".AdminDashboardActivity"/>
         <activity android:name=".AddEventActivity"/>
+        <activity android:name=".EventReserveActivity"/>
 
     </application>
 

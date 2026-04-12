@@ -1,6 +1,5 @@
 package com.example.ticketreservationapp;
 
-import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
@@ -22,13 +21,11 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class EventListActivity extends AppCompatActivity implements EventAdapter.OnEventClickListener {
-
+public class ReservationActivity extends AppCompatActivity implements EventAdapter.OnEventClickListener{
     private RecyclerView recyclerEvents;
     private EventAdapter adapter;
     private List<Event> allEvents = new ArrayList<>();
@@ -80,7 +77,11 @@ public class EventListActivity extends AppCompatActivity implements EventAdapter
                 for (QueryDocumentSnapshot document : task.getResult()) {
                     Event event = document.toObject(Event.class);
                     event.setId(document.getId());
-                    allEvents.add(event);
+                    for(String eventId : currentUser.getEvents()){
+                        if(eventId.equals(event.getId())) {
+                            allEvents.add(event);
+                        }
+                    }
                 }
                 sortEventsByDate(allEvents);
                 filteredEvents.clear();

@@ -22,18 +22,25 @@ import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.intent.Intents.intended;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
 
+import android.util.Log;
+
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreSettings;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 
 @RunWith(AndroidJUnit4.class)
 public class LoginActivityTest {
     private FirebaseFirestore db;
-
+    readWrite rw;
+    private List<String> userIdsToDelete;
     @Rule
     public ActivityScenarioRule<LoginActivity> activityRule =
             new ActivityScenarioRule<>(LoginActivity.class);
@@ -86,10 +93,20 @@ public class LoginActivityTest {
         db.collection("users")
                 .document()
                 .set(user2);
+        rw = new readWrite(db);
+        userIdsToDelete = new ArrayList<>();
     }
 
     @After
-    public void tearDown() {
+    public void tearDown() { //have to delete users before ending test or db becomes bloated
+        for (String id : userIdsToDelete) {
+            try {
+                Tasks.await(rw.deleteUser(id), 5, TimeUnit.SECONDS);
+            } catch (Exception e) {
+                Log.e("readWriteTests", "Failed to delete user: " + id, e);
+            }
+        }
+
         Intents.release();
     }
 
