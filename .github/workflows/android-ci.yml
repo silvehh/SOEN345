@@ -129,18 +129,17 @@ jobs:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: avd-api33-pixel5
+          key: avd-api33-google-atd
 
       - name: Create AVD snapshot
         if: steps.avd-cache.outputs.cache-hit != 'true'
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 33
-          target: google_apis
+          target: google_atd
           arch: x86_64
-          profile: pixel_5
           force-avd-creation: false
-          emulator-boot-timeout: 8
+          emulator-boot-timeout: 20
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front none
           disable-animations: false
           disable-spellchecker: false
@@ -150,11 +149,10 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 33
-          target: google_apis
+          target: google_atd
           arch: x86_64
-          profile: pixel_5
           force-avd-creation: false
-          emulator-boot-timeout: 8
+          emulator-boot-timeout: 20
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front none
           disable-animations: true
           disable-spellchecker: true
