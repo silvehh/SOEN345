@@ -30,5 +30,15 @@ jobs:
       - name: Build debug APK
         run: ./gradlew assembleDebug --no-daemon
 
-      - name: Run unit tests
-        run: ./gradlew test --no-daemon
+      - name: Run unit tests and generate coverage report
+        run: ./gradlew testDebugUnitTest --no-daemon
+
+      - name: Upload test and coverage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-test-and-coverage-reports
+          path: |
+            app/build/reports/tests/testDebugUnitTest/
+            app/build/reports/jacoco/jacocoTestReport/
+            app/build/test-results/testDebugUnitTest/
