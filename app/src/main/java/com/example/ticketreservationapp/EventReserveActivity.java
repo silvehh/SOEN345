@@ -21,12 +21,15 @@ public class EventReserveActivity extends AppCompatActivity {
 
     private User currentUser;
 
+    private NotificationService notificationService;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_reserve_event);
 
         rw = new readWrite(FirebaseFirestore.getInstance());
+        notificationService = new NotificationService();
 
         initViews();
 
@@ -58,6 +61,7 @@ public class EventReserveActivity extends AppCompatActivity {
 
                 newEvents.remove(eventToReserve.getId());
                 currentUser.setEvents(newEvents);
+                notificationService.sendConfirmation(currentUser.getEmail(), currentUser.getPhone(), eventToReserve.getEventName(), isReserved);
             } else {
                 rw.reserveEvent(eventToReserve, currentUser);
                 ArrayList<String> newEvents = currentUser.getEvents();
@@ -68,6 +72,7 @@ public class EventReserveActivity extends AppCompatActivity {
 
                 newEvents.add(eventToReserve.getId());
                 currentUser.setEvents(newEvents);
+                notificationService.sendConfirmation(currentUser.getEmail(), currentUser.getPhone(), eventToReserve.getEventName(), isReserved);
             }
 
             Intent intent = new Intent(this, EventListActivity.class);

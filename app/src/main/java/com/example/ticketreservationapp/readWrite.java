@@ -14,7 +14,7 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 
 public class readWrite {
-    FirebaseFirestore db;
+    private final FirebaseFirestore db;
 
     public readWrite(FirebaseFirestore db) {
         this.db = db;
