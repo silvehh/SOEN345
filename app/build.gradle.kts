@@ -1,3 +1,8 @@
+import java.util.Locale
+
+import javax.xml.parsers.DocumentBuilderFactory
+
+import org.gradle.api.GradleException
 import org.gradle.testing.jacoco.tasks.JacocoReport
 
 plugins {
@@ -83,42 +88,53 @@ tasks.register<JacocoReport>("jacocoTestReport") {
     )
 }
 
-tasks.register<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
-    dependsOn("testDebugUnitTest")
+tasks.register("jacocoTestCoverageVerification") {
+    dependsOn("jacocoTestReport")
 
-    val classFiles = fileTree("$buildDir/intermediates/javac/debug/classes") {
-        exclude(
-            "**/R.class",
-            "**/R$*.class",
-            "**/BuildConfig.*",
-            "**/Manifest*.*",
-            "**/*Test*.*",
-            "android/**/*.*"
-        )
-    }
-
-    classDirectories.setFrom(files(classFiles))
-    sourceDirectories.setFrom(files("src/main/java"))
-    executionData.setFrom(
-        fileTree(buildDir) {
-            include(
-                "jacoco/testDebugUnitTest.exec",
-                "outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec"
-            )
+    doLast {
+        val reportFile = file("$buildDir/reports/jacoco/jacocoTestReport/jacocoTestReport.xml")
+        if (!reportFile.exists()) {
+            throw GradleException("Jacoco report not found at ${reportFile.absolutePath}")
         }
-    )
 
-    violationRules {
-        rule {
-            limit {
-                minimum = BigDecimal("0.80")
+        val document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(reportFile)
+        val counters = document.getElementsByTagName("counter")
+
+        var covered = 0L
+        var missed = 0L
+
+        for (index in 0 until counters.length) {
+            val node = counters.item(index)
+            val type = node.attributes?.getNamedItem("type")?.nodeValue
+            if (type == "LINE") {
+                covered = node.attributes.getNamedItem("covered").nodeValue.toLong()
+                missed = node.attributes.getNamedItem("missed").nodeValue.toLong()
+                break
             }
+        }
+
+        val total = covered + missed
+        if (total == 0L) {
+            throw GradleException("No line coverage data was found in the Jacoco report")
+        }
+
+        val coveragePercent = covered.toDouble() * 100.0 / total.toDouble()
+        logger.lifecycle("Debug unit test coverage: ${String.format(Locale.US, "%.2f", coveragePercent)}%")
+
+        if (coveragePercent < 80.0) {
+            throw GradleException(
+                "Debug unit test coverage ${String.format(Locale.US, "%.2f", coveragePercent)}% is below the required 80.00%"
+            )
         }
     }
 }
 
 tasks.matching { it.name == "testDebugUnitTest" }.configureEach {
     finalizedBy("jacocoTestReport")
+}
+
+tasks.matching { it.name == "check" }.configureEach {
+    dependsOn("jacocoTestCoverageVerification")
 }
 
 

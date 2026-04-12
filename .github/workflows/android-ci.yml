@@ -1,5 +1,5 @@
 # SOEN345 - Ticket Reservation App CI
-# Builds the Android app and runs unit tests on every push and pull request.
+# Builds the Android app and runs unit and instrumentation tests on every push and pull request.
 name: Android CI
 
 on:
@@ -31,7 +31,51 @@ jobs:
         run: ./gradlew assembleDebug --no-daemon
 
       - name: Run unit tests and generate coverage report
-        run: ./gradlew testDebugUnitTest --no-daemon
+        run: ./gradlew testDebugUnitTest jacocoTestCoverageVerification --no-daemon
+
+      - name: Run instrumentation tests on emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          script: ./gradlew connectedDebugAndroidTest createDebugCoverageReport --no-daemon
+
+      - name: Publish coverage summary
+        if: always()
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import os
+          import pathlib
+          import sys
+          import xml.etree.ElementTree as ET
+
+          report = pathlib.Path("app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml")
+          summary_path = pathlib.Path(os.environ["GITHUB_STEP_SUMMARY"])
+
+          if not report.exists():
+              summary_path.write_text("### Test Coverage\n\nJacoco report not found.\n", encoding="utf-8")
+              sys.exit(0)
+
+          root = ET.parse(report).getroot()
+          line_counter = next((counter for counter in root.findall("counter") if counter.attrib.get("type") == "LINE"), None)
+
+          if line_counter is None:
+              summary_path.write_text("### Test Coverage\n\nLine coverage data was not found.\n", encoding="utf-8")
+              sys.exit(0)
+
+          covered = int(line_counter.attrib["covered"])
+          missed = int(line_counter.attrib["missed"])
+          total = covered + missed
+          percent = (covered / total * 100.0) if total else 0.0
+
+          summary_path.write_text(
+              f"### Test Coverage\n\nDebug unit test line coverage: **{percent:.2f}%**\n",
+              encoding="utf-8",
+          )
+          PY
 
       - name: Upload test and coverage reports
         if: always()
@@ -40,5 +84,7 @@ jobs:
           name: android-test-and-coverage-reports
           path: |
             app/build/reports/tests/testDebugUnitTest/
-            app/build/reports/jacoco/jacocoTestReport/
-            app/build/test-results/testDebugUnitTest/
+            app/build/reports/jacoco/
+            app/build/reports/coverage/
+            app/build/outputs/code_coverage/
+            app/build/test-results/
