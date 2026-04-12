@@ -50,6 +50,8 @@ public class EventListActivity extends AppCompatActivity implements EventAdapter
     private TextView tvResultsCount;
     private TextView tvNoResults;
 
+    private boolean isReservation = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -104,7 +106,16 @@ public class EventListActivity extends AppCompatActivity implements EventAdapter
                 for (QueryDocumentSnapshot document : task.getResult()) {
                     Event event = document.toObject(Event.class);
                     event.setId(document.getId());
-                    allEvents.add(event);
+                    if(isReservation) {
+                        for(String eventId : currentUser.getEvents()){
+                            if(eventId.equals(event.getId())) {
+                                allEvents.add(event);
+                            }
+                        }
+                    } else {
+                        allEvents.add(event);
+                    }
+
                 }
                 sortEventsByDate(allEvents);
                 filterHelper.setAllEvents(allEvents);
@@ -287,11 +298,18 @@ public class EventListActivity extends AppCompatActivity implements EventAdapter
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_home) {
+                isReservation = false;
+                fetchEvents();
                 return true;
             } else if (id == R.id.nav_search) {
                 return true;
-            } else return id == R.id.nav_reservation;
-        });
+            } else if (id == R.id.nav_reservation) {
+                isReservation = true;
+                fetchEvents();
+                return true;
+            }
+            return false;
+        } );
     }
 
     @Override
