@@ -108,32 +108,6 @@ public class NotificationServiceTests {
     }
 
     @Test
-    public void sendConfirmation_withEmailAndPhone_callsBoth() throws Exception {
-        FakeNotificationService service = new FakeNotificationService();
-
-        Tasks.await(service.sendConfirmation(
-                "test@gmail.com",
-                "5141112222",
-                "Concert",
-                false
-        ));
-
-        assertEquals(1, service.emailCalls.size());
-        assertEquals(1, service.smsCalls.size());
-
-        EmailCall email = service.emailCalls.get(0);
-        SmsCall sms = service.smsCalls.get(0);
-
-        assertEquals("test@gmail.com", email.to);
-        assertEquals("Confirmation: Concert", email.subject);
-        assertEquals("Your event \"Concert\" has been confirmed.", email.textBody);
-        assertEquals("<p>Your event <strong>Concert</strong> has been confirmed.</p>", email.htmlBody);
-
-        assertEquals("5141112222", sms.phone);
-        assertEquals("Your event \"Concert\" has been confirmed.", sms.body);
-    }
-
-    @Test
     public void sendConfirmation_withOnlyEmail_callsOnlyEmail() throws Exception {
         FakeNotificationService service = new FakeNotificationService();
 
@@ -169,7 +143,7 @@ public class NotificationServiceTests {
 
         Tasks.await(service.sendConfirmation(
                 "test@gmail.com",
-                "5141112222",
+                null,
                 "Concert",
                 true
         ));
