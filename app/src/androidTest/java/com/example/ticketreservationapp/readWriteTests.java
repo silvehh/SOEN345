@@ -12,6 +12,7 @@ import org.junit.runner.RunWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.util.Log;
@@ -26,8 +27,11 @@ import com.google.firebase.firestore.FirebaseFirestoreSettings;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -148,7 +152,7 @@ public class readWriteTests {
 
         String invalidPassword = "invalid-" + System.currentTimeMillis();
         User result = syncSignIn(user.getEmail(), null, invalidPassword);
-        Assert.assertNull(result);
+        assertNull(result);
     }
 
     @Test
@@ -189,5 +193,155 @@ public class readWriteTests {
                 db.collection("events").document(id).get(),
                 10, TimeUnit.SECONDS);
         assertFalse(doc.exists());
+    }
+
+    @Test
+    public void isReservedTest() {
+        Event event = buildEvent(
+                "event-2",
+                "Movie Night",
+                "Entertainment",
+                "2026-04-22",
+                "8:00 PM",
+                "Hall A",
+                10.0
+        );
+
+        ArrayList<String> events = new ArrayList<>();
+        events.add("event-2");
+
+        User user = buildUser("test@gmail.com", "+15145551234", events);
+
+        assertTrue(rw.isReserved(event, user));
+    }
+
+    @Test
+    public void reservationTest() throws ExecutionException, InterruptedException {
+        String eventId = "event1";
+
+        Map<String, Object> userMap = new HashMap<>();
+        userMap.put("email", "test@gmail.com");
+        userMap.put("phone", "");
+        userMap.put("password", "123456");
+        userMap.put("events", new ArrayList<String>());
+
+        Map<String, Object> eventMap = new HashMap<>();
+        eventMap.put("tickets", 10);
+
+        Tasks.await(db.collection("users").add(userMap));
+        Tasks.await(db.collection("events").document(eventId).set(eventMap));
+
+        User user = new User();
+        user.setEmail("test@gmail.com");
+        user.setPhone("");
+        user.setPassword("123456");
+
+        Event event = new Event();
+        event.setId(eventId);
+        event.setTickets(10);
+
+        Tasks.await(rw.reserveEvent(event, user));
+
+        QuerySnapshot userSnap = Tasks.await(
+                db.collection("users")
+                        .whereEqualTo("email", "test@gmail.com")
+                        .whereEqualTo("password", "123456")
+                        .get()
+        );
+
+        DocumentSnapshot userDoc = userSnap.getDocuments().get(0);
+        List<String> events = (List<String>) userDoc.get("events");
+
+        assertNotNull(events);
+        assertTrue(events.contains(eventId));
+
+        DocumentSnapshot eventDoc = Tasks.await(
+                db.collection("events").document(eventId).get()
+        );
+
+        Long tickets = eventDoc.getLong("tickets");
+        assertNotNull(tickets);
+        assertEquals(9L, tickets.longValue());
+    }
+
+    @Test
+    public void cancellationTest() throws ExecutionException, InterruptedException {
+        String eventId = "cancelEmailEvent";
+
+        ArrayList<String> userEvents = new ArrayList<>();
+        userEvents.add(eventId);
+        userEvents.add("otherEvent");
+
+        Map<String, Object> userMap = new HashMap<>();
+        userMap.put("email", "emailuser@gmail.com");
+        userMap.put("phone", "");
+        userMap.put("password", "123456");
+        userMap.put("events", userEvents);
+
+        Map<String, Object> eventMap = new HashMap<>();
+        eventMap.put("tickets", 4);
+
+        Tasks.await(db.collection("users").add(userMap));
+        Tasks.await(db.collection("events").document(eventId).set(eventMap));
+
+        User user = new User();
+        user.setEmail("emailuser@gmail.com");
+        user.setPhone("");
+        user.setPassword("123456");
+
+        Event event = new Event();
+        event.setId(eventId);
+
+        Tasks.await(rw.cancelEvent(event, user));
+
+        QuerySnapshot userSnap = Tasks.await(
+                db.collection("users")
+                        .whereEqualTo("email", "emailuser@gmail.com")
+                        .whereEqualTo("password", "123456")
+                        .get()
+        );
+
+        assertFalse(userSnap.isEmpty());
+
+        DocumentSnapshot userDoc = userSnap.getDocuments().get(0);
+        List<String> events = (List<String>) userDoc.get("events");
+
+        assertNotNull(events);
+        assertFalse(events.contains(eventId));
+        assertTrue(events.contains("otherEvent"));
+
+        DocumentSnapshot eventDoc = Tasks.await(
+                db.collection("events").document(eventId).get()
+        );
+
+        Long tickets = eventDoc.getLong("tickets");
+        assertNotNull(tickets);
+        assertEquals(5L, tickets.longValue());
+    }
+
+    private Event buildEvent(String id,
+                             String name,
+                             String category,
+                             String date,
+                             String time,
+                             String venue,
+                             double price) {
+        Event event = new Event();
+        event.setId(id);
+        event.setEventName(name);
+        event.setCategory(category);
+        event.setDate(date);
+        event.setTime(time);
+        event.setVenue(venue);
+        event.setPrice(price);
+        return event;
+    }
+
+    private User buildUser(String email, String phone, ArrayList<String> events) {
+        User user = new User();
+        user.setEmail(email);
+        user.setPhone(phone);
+        user.setEvents(events);
+        return user;
     }
 }

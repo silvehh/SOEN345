@@ -10,6 +10,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.WriteBatch;
 
 import java.util.ArrayList;
 
@@ -60,10 +61,11 @@ public class readWrite {
         return isReserved;
     }
 
-    public void reserveEvent(Event event, User user) {
+    public Task<Void> reserveEvent(Event event, User user) {
         String field;
         String variable;
-        if(user.getPhone() == null || user.getPhone().isEmpty()) {
+
+        if (user.getPhone() == null || user.getPhone().isEmpty()) {
             field = "email";
             variable = user.getEmail();
         } else {
@@ -71,23 +73,40 @@ public class readWrite {
             variable = user.getPhone();
         }
 
-        db.collection("users").whereEqualTo(field, variable).whereEqualTo("password", user.getPassword()).get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    for(DocumentSnapshot document : queryDocumentSnapshots) {
-                        String docId = document.getId();
-
-                        db.collection("users").document(docId).update("events", FieldValue.arrayUnion(event.getId()));
-                        System.out.println("Successful add");
+        return db.collection("users")
+                .whereEqualTo(field, variable)
+                .whereEqualTo("password", user.getPassword())
+                .get()
+                .continueWithTask(task -> {
+                    if (!task.isSuccessful()) {
+                        throw task.getException();
                     }
-                });
-        db.collection("events").document(event.getId()).update("tickets", event.getTickets() - 1);
 
+                    WriteBatch batch = db.batch();
+
+                    for (DocumentSnapshot document : task.getResult()) {
+                        batch.update(
+                                db.collection("users").document(document.getId()),
+                                "events",
+                                FieldValue.arrayUnion(event.getId())
+                        );
+                    }
+
+                    batch.update(
+                            db.collection("events").document(event.getId()),
+                            "tickets",
+                            event.getTickets() - 1
+                    );
+
+                    return batch.commit();
+                });
     }
 
-    public void cancelEvent(Event event, User user) {
+    public Task<Void> cancelEvent(Event event, User user) {
         String field;
         String variable;
-        if(user.getPhone() == null || user.getPhone().isEmpty()) {
+
+        if (user.getPhone() == null || user.getPhone().isEmpty()) {
             field = "email";
             variable = user.getEmail();
         } else {
@@ -95,16 +114,33 @@ public class readWrite {
             variable = user.getPhone();
         }
 
-        db.collection("users").whereEqualTo(field, variable).whereEqualTo("password", user.getPassword()).get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    for(DocumentSnapshot document : queryDocumentSnapshots) {
-                        String docId = document.getId();
-
-                        db.collection("users").document(docId).update("events", FieldValue.arrayRemove(event.getId()));
-                        System.out.println("Successful cancellation");
+        return db.collection("users")
+                .whereEqualTo(field, variable)
+                .whereEqualTo("password", user.getPassword())
+                .get()
+                .continueWithTask(task -> {
+                    if (!task.isSuccessful()) {
+                        throw task.getException();
                     }
+
+                    WriteBatch batch = db.batch();
+
+                    for (DocumentSnapshot document : task.getResult()) {
+                        batch.update(
+                                db.collection("users").document(document.getId()),
+                                "events",
+                                FieldValue.arrayRemove(event.getId())
+                        );
+                    }
+
+                    batch.update(
+                            db.collection("events").document(event.getId()),
+                            "tickets",
+                            FieldValue.increment(1)
+                    );
+
+                    return batch.commit();
                 });
-        db.collection("events").document(event.getId()).update("tickets", event.getTickets() + 1);
     }
 
     void signIn(String etEmail, String etPhone, String etPassword, SignInCallback callback) {
