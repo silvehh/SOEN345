@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 @RunWith(AndroidJUnit4.class)
@@ -209,7 +210,7 @@ public class readWriteTests {
     }
 
     @Test
-    public void reservationTest() throws ExecutionException, InterruptedException {
+    public void reservationTest() throws ExecutionException, InterruptedException, TimeoutException {
         String eventId = "event1";
 
         Map<String, Object> userMap = new HashMap<>();
@@ -221,8 +222,8 @@ public class readWriteTests {
         Map<String, Object> eventMap = new HashMap<>();
         eventMap.put("tickets", 10);
 
-        Tasks.await(db.collection("users").add(userMap));
-        Tasks.await(db.collection("events").document(eventId).set(eventMap));
+        Tasks.await(db.collection("users").add(userMap), 10, TimeUnit.SECONDS);
+        Tasks.await(db.collection("events").document(eventId).set(eventMap), 10, TimeUnit.SECONDS);
 
         User user = new User();
         user.setEmail("test@gmail.com");
@@ -233,13 +234,13 @@ public class readWriteTests {
         event.setId(eventId);
         event.setTickets(10);
 
-        Tasks.await(rw.reserveEvent(event, user));
+        Tasks.await(rw.reserveEvent(event, user), 10, TimeUnit.SECONDS);
 
         QuerySnapshot userSnap = Tasks.await(
                 db.collection("users")
                         .whereEqualTo("email", "test@gmail.com")
                         .whereEqualTo("password", "123456")
-                        .get()
+                        .get(), 10, TimeUnit.SECONDS
         );
 
         DocumentSnapshot userDoc = userSnap.getDocuments().get(0);
@@ -249,7 +250,7 @@ public class readWriteTests {
         assertTrue(events.contains(eventId));
 
         DocumentSnapshot eventDoc = Tasks.await(
-                db.collection("events").document(eventId).get()
+                db.collection("events").document(eventId).get(), 10, TimeUnit.SECONDS
         );
 
         Long tickets = eventDoc.getLong("tickets");
@@ -258,7 +259,7 @@ public class readWriteTests {
     }
 
     @Test
-    public void cancellationTest() throws ExecutionException, InterruptedException {
+    public void cancellationTest() throws ExecutionException, InterruptedException, TimeoutException {
         String eventId = "cancelEmailEvent";
 
         ArrayList<String> userEvents = new ArrayList<>();
@@ -274,8 +275,8 @@ public class readWriteTests {
         Map<String, Object> eventMap = new HashMap<>();
         eventMap.put("tickets", 4);
 
-        Tasks.await(db.collection("users").add(userMap));
-        Tasks.await(db.collection("events").document(eventId).set(eventMap));
+        Tasks.await(db.collection("users").add(userMap), 10, TimeUnit.SECONDS);
+        Tasks.await(db.collection("events").document(eventId).set(eventMap), 10, TimeUnit.SECONDS);
 
         User user = new User();
         user.setEmail("test@gmail.com");
@@ -285,13 +286,13 @@ public class readWriteTests {
         Event event = new Event();
         event.setId(eventId);
 
-        Tasks.await(rw.cancelEvent(event, user));
+        Tasks.await(rw.cancelEvent(event, user), 10, TimeUnit.SECONDS);
 
         QuerySnapshot userSnap = Tasks.await(
                 db.collection("users")
                         .whereEqualTo("email", "test@gmail.com")
                         .whereEqualTo("password", "123456")
-                        .get()
+                        .get(), 10, TimeUnit.SECONDS
         );
 
         assertFalse(userSnap.isEmpty());
