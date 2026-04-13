@@ -197,20 +197,13 @@ public class readWriteTests {
 
     @Test
     public void isReservedTest() {
-        Event event = buildEvent(
-                "event-2",
-                "Movie Night",
-                "Entertainment",
-                "2026-04-22",
-                "8:00 PM",
-                "Hall A",
-                10.0
-        );
+        Event event = new Event("Test Event", "Music", "12/12/2025", "8:00 PM", "Test Venue", 100, 50.0);
+        event.setId("Test Event");
 
         ArrayList<String> events = new ArrayList<>();
-        events.add("event-2");
+        events.add(event.getId());
 
-        User user = buildUser("test@gmail.com", "+15145551234", events);
+        user.setEvents(events);
 
         assertTrue(rw.isReserved(event, user));
     }
@@ -273,7 +266,7 @@ public class readWriteTests {
         userEvents.add("otherEvent");
 
         Map<String, Object> userMap = new HashMap<>();
-        userMap.put("email", "emailuser@gmail.com");
+        userMap.put("email", "test@gmail.com");
         userMap.put("phone", "");
         userMap.put("password", "123456");
         userMap.put("events", userEvents);
@@ -285,7 +278,7 @@ public class readWriteTests {
         Tasks.await(db.collection("events").document(eventId).set(eventMap));
 
         User user = new User();
-        user.setEmail("emailuser@gmail.com");
+        user.setEmail("test@gmail.com");
         user.setPhone("");
         user.setPassword("123456");
 
@@ -296,7 +289,7 @@ public class readWriteTests {
 
         QuerySnapshot userSnap = Tasks.await(
                 db.collection("users")
-                        .whereEqualTo("email", "emailuser@gmail.com")
+                        .whereEqualTo("email", "test@gmail.com")
                         .whereEqualTo("password", "123456")
                         .get()
         );
@@ -317,31 +310,5 @@ public class readWriteTests {
         Long tickets = eventDoc.getLong("tickets");
         assertNotNull(tickets);
         assertEquals(5L, tickets.longValue());
-    }
-
-    private Event buildEvent(String id,
-                             String name,
-                             String category,
-                             String date,
-                             String time,
-                             String venue,
-                             double price) {
-        Event event = new Event();
-        event.setId(id);
-        event.setEventName(name);
-        event.setCategory(category);
-        event.setDate(date);
-        event.setTime(time);
-        event.setVenue(venue);
-        event.setPrice(price);
-        return event;
-    }
-
-    private User buildUser(String email, String phone, ArrayList<String> events) {
-        User user = new User();
-        user.setEmail(email);
-        user.setPhone(phone);
-        user.setEvents(events);
-        return user;
     }
 }

@@ -37,46 +37,16 @@ import java.util.List;
 
 @RunWith(AndroidJUnit4.class)
 public class EventReserveActivityTest {
-    private FirebaseFirestore db;
-    readWrite rw;
+    private Event event1, event2;
+    private User user;
 
     @Before
     public void setUp() {
         Intents.init();
 
-        intending(hasComponent(MainActivity.class.getName()))
-                .respondWith(new Instrumentation.ActivityResult(Activity.RESULT_OK, null));
-        intending(hasComponent(EventListActivity.class.getName()))
-                .respondWith(new Instrumentation.ActivityResult(Activity.RESULT_OK, null));
-        intending(hasComponent(AdminDashboardActivity.class.getName()))
-                .respondWith(new Instrumentation.ActivityResult(Activity.RESULT_OK, null));
-
-
-
-        if (FirebaseApp.getApps(InstrumentationRegistry.getInstrumentation().getTargetContext()).isEmpty()) {
-            FirebaseApp.initializeApp(InstrumentationRegistry.getInstrumentation().getTargetContext());
-        }
-
-
-        db = FirebaseFirestore.getInstance();
-
-        try{
-            db.useEmulator("10.0.2.2", 8080);
-        }
-        catch (Exception e) {
-
-        }
-
-        try {
-            FirebaseFirestoreSettings settings =
-                    new FirebaseFirestoreSettings.Builder()
-                            .setPersistenceEnabled(false)
-                            .build();
-            db.setFirestoreSettings(settings);
-        } catch (IllegalStateException ignored) {
-            // Firestore settings can only be set once
-        }
-        rw = new readWrite(db);
+        user = new User("John Doe", "e@e.com", null, "12345678", false, null);
+        event1 = new Event("Test Event", "Music", "12/12/2025", "8:00 PM", "Test Venue", 100, 50.0);
+        event2 = new Event("Test Event2", "Music", "12/12/2025", "8:00 PM", "Test Venue", 100, 50.0);
     }
 
     @After
@@ -87,47 +57,32 @@ public class EventReserveActivityTest {
     @Test
     public void testDisplaysEventDetailsCorrectly() {
 
-        Event event = buildEvent(
-                "event-1",
-                "Basketball Night",
-                "Sports",
-                "2026-04-20",
-                "7:00 PM",
-                "Main Gym",
-                15.0
-        );
+        event1.setId("event1");
 
-        User user = buildUser("test@gmail.com", "5145551234", new ArrayList<>());
 
-        launch(event, user);
+        user.setEvents(new ArrayList<>());
 
-        onView(withId(R.id.evTitle)).check(matches(withText("Basketball Night")));
-        onView(withId(R.id.evCategory)).check(matches(withText("Sports")));
-        onView(withId(R.id.evDate)).check(matches(withText("Date: 2026-04-20")));
-        onView(withId(R.id.evTime)).check(matches(withText("Time: 7:00 PM")));
-        onView(withId(R.id.evVenue)).check(matches(withText("Venue: Main Gym")));
-        onView(withId(R.id.evPrice)).check(matches(withText("Price: 15.0")));
+        launch(event1, user);
+
+        onView(withId(R.id.evTitle)).check(matches(withText("Test Event")));
+        onView(withId(R.id.evCategory)).check(matches(withText("Music")));
+        onView(withId(R.id.evDate)).check(matches(withText("Date: 12/12/2025")));
+        onView(withId(R.id.evTime)).check(matches(withText("Time: 8:00 PM")));
+        onView(withId(R.id.evVenue)).check(matches(withText("Venue: Test Venue")));
+        onView(withId(R.id.evPrice)).check(matches(withText("Price: 50.0")));
     }
 
     @Test
     public void testButtonShowsCancelReservationWhenAlreadyReserved() {
 
-        Event event = buildEvent(
-                "event-2",
-                "Movie Night",
-                "Entertainment",
-                "2026-04-22",
-                "8:00 PM",
-                "Hall A",
-                10.0
-        );
+        event2.setId("event2");
 
         ArrayList<String> events = new ArrayList<>();
-        events.add("event-2");
+        events.add(event2.getId());
 
-        User user = buildUser("test@gmail.com", "+15145551234", events);
+        user.setEvents(events);
 
-        launch(event, user);
+        launch(event2, user);
 
         onView(withId(R.id.btnReserve))
                 .check(matches(withText("Cancel Reservation")));
@@ -144,29 +99,4 @@ public class EventReserveActivityTest {
         ActivityScenario.launch(intent);
     }
 
-    private Event buildEvent(String id,
-                             String name,
-                             String category,
-                             String date,
-                             String time,
-                             String venue,
-                             double price) {
-        Event event = new Event();
-        event.setId(id);
-        event.setEventName(name);
-        event.setCategory(category);
-        event.setDate(date);
-        event.setTime(time);
-        event.setVenue(venue);
-        event.setPrice(price);
-        return event;
-    }
-
-    private User buildUser(String email, String phone, ArrayList<String> events) {
-        User user = new User();
-        user.setEmail(email);
-        user.setPhone(phone);
-        user.setEvents(events);
-        return user;
-    }
 }
