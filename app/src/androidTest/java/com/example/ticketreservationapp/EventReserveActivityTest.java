@@ -85,7 +85,7 @@ public class EventReserveActivityTest {
     }
 
     @Test
-    public void displaysEventDetailsCorrectly() {
+    public void testDisplaysEventDetailsCorrectly() {
 
         Event event = buildEvent(
                 "event-1",
@@ -97,7 +97,7 @@ public class EventReserveActivityTest {
                 15.0
         );
 
-        User user = buildUser("test@gmail.com", "+15145551234", new ArrayList<>());
+        User user = buildUser("test@gmail.com", "5145551234", new ArrayList<>());
 
         launch(event, user);
 
@@ -110,7 +110,7 @@ public class EventReserveActivityTest {
     }
 
     @Test
-    public void buttonShowsCancelReservationWhenAlreadyReserved() {
+    public void testButtonShowsCancelReservationWhenAlreadyReserved() {
 
         Event event = buildEvent(
                 "event-2",

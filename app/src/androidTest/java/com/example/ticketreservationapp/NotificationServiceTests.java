@@ -69,7 +69,7 @@ public class NotificationServiceTests {
     }
 
     @Test
-    public void queueEmail_writesCorrectDocument() throws Exception {
+    public void testCorrectEmailDoc() throws Exception {
         DocumentReference ref = Tasks.await(service.queueEmail(
                 "test@gmail.com",
                 "Confirmation: Concert",
@@ -93,7 +93,7 @@ public class NotificationServiceTests {
     }
 
     @Test
-    public void queueSms_writesCorrectDocument() throws Exception {
+    public void testCorrectSmsDoc() throws Exception {
         DocumentReference ref = Tasks.await(service.queueSms(
                 "5141112222",
                 "Your event \"Concert\" has been confirmed."
@@ -108,7 +108,7 @@ public class NotificationServiceTests {
     }
 
     @Test
-    public void sendConfirmation_withOnlyEmail_callsOnlyEmail() throws Exception {
+    public void testSendEmailConfirmation() throws Exception {
         FakeNotificationService service = new FakeNotificationService();
 
         Tasks.await(service.sendConfirmation(
@@ -123,7 +123,7 @@ public class NotificationServiceTests {
     }
 
     @Test
-    public void sendConfirmation_withOnlyPhone_callsOnlySms() throws Exception {
+    public void testSendSmsConfirmation() throws Exception {
         FakeNotificationService service = new FakeNotificationService();
 
         Tasks.await(service.sendConfirmation(
@@ -138,7 +138,7 @@ public class NotificationServiceTests {
     }
 
     @Test
-    public void sendConfirmation_withCancelledEvent_usesCancelledHtml() throws Exception {
+    public void testSendCancellationConfirmation() throws Exception {
         FakeNotificationService service = new FakeNotificationService();
 
         Tasks.await(service.sendConfirmation(
