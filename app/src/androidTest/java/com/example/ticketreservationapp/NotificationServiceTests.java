@@ -41,12 +41,22 @@ public class NotificationServiceTests {
         }
 
         db = FirebaseFirestore.getInstance();
-        db.useEmulator("10.0.2.2", 8080);
+        try{
+            db.useEmulator("10.0.2.2", 8080);
+        }
+        catch (Exception ignored) {
 
-        FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
-                .setPersistenceEnabled(false)
-                .build();
-        db.setFirestoreSettings(settings);
+        }
+
+        try {
+            FirebaseFirestoreSettings settings =
+                    new FirebaseFirestoreSettings.Builder()
+                            .setPersistenceEnabled(false)
+                            .build();
+            db.setFirestoreSettings(settings);
+        } catch (IllegalStateException ignored) {
+
+        }
 
         service = new NotificationService();
     }
@@ -117,7 +127,7 @@ public class NotificationServiceTests {
         assertEquals("test@gmail.com", email.to);
         assertEquals("Confirmation: Concert", email.subject);
         assertEquals("Your event \"Concert\" has been confirmed.", email.textBody);
-        assertEquals("<p>Your event <strong>Concert</strong> hasbeen confirmed.</p>", email.htmlBody);
+        assertEquals("<p>Your event <strong>Concert</strong> has been confirmed.</p>", email.htmlBody);
 
         assertEquals("5141112222", sms.phone);
         assertEquals("Your event \"Concert\" has been confirmed.", sms.body);
@@ -165,7 +175,7 @@ public class NotificationServiceTests {
         ));
 
         EmailCall email = service.emailCalls.get(0);
-        assertEquals("<p>Your event <strong>Concert</strong> hasbeen cancelled.</p>", email.htmlBody);
+        assertEquals("<p>Your event <strong>Concert</strong> has been cancelled.</p>", email.htmlBody);
     }
 
     static class FakeNotificationService extends NotificationService {

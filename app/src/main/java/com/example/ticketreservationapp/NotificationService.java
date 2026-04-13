@@ -26,7 +26,7 @@ public class NotificationService {
                     email.trim(),
                     "Confirmation: " + eventName,
                     "Your event \"" + eventName + "\" has been confirmed.",
-                    "<p>Your event <strong>" + escapeHtml(eventName) + "</strong> has" +  (isReserved ? "been cancelled" : "been confirmed") +".</p>"
+                    "<p>Your event <strong>" + escapeHtml(eventName) + "</strong> has " +  (isReserved ? "been cancelled" : "been confirmed") +".</p>"
             ));
         }
 
