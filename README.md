@@ -8,8 +8,11 @@ Team members:
 - Yousef Bisharah (40151411)
 
 ### Before running tests:
-1. Make sure you have Firebase CLI installed. The command is 'npm install -g firebase-tools'
-2. Make sure your Firestore emulator is up and running. The command is 'firebase emulators:start --only firestore'
+Make sure you have Firebase CLI installed. The command is 'npm install -g firebase-tools'
 
 ### To run tests
-In your project root directory, type './gradlew createDebugCoverageReport' into the terminal on Android Studio 
+1. Open Android Studio
+2. Start an emulator device, it is highly recommended to use **Medium Phone API 36.1**
+3. Open terminal in project root directory
+4. Run "firebase emulators:start --only firestore" get your Firestore emulator up and running.
+5. Run "./gradlew createDebugCoverageReport" and the tests should run! 
