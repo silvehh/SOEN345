@@ -88,6 +88,19 @@ public class EventReserveActivityTest {
                 .check(matches(withText("Cancel Reservation")));
     }
 
+    @Test
+    public void testButtonShowsReserve() {
+        event1.setId("event1");
+
+
+        user.setEvents(new ArrayList<>());
+
+        launch(event1, user);
+
+        onView(withId(R.id.btnReserve))
+                .check(matches(withText("Reserve Event")));
+    }
+
     private void launch(Event event, User user) {
         Intent intent = new Intent(
                 InstrumentationRegistry.getInstrumentation().getTargetContext(),
