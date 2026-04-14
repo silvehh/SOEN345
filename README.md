@@ -16,3 +16,5 @@ Make sure you have Firebase CLI installed. The command is 'npm install -g fireba
 3. Open terminal in project root directory
 4. Run "firebase emulators:start --only firestore" get your Firestore emulator up and running.
 5. Run "./gradlew createDebugCoverageReport" and the tests should run! 
+
+Note: The emulators perform depending on your machine's resources, sometimes the emulator would lag because of another process in the computer and that would cause the misstiming of clicks and cause the tests to fail. We have ensured all tests to pass, so please run again if this does happen and the test that was failing should pass.
