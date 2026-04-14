@@ -119,20 +119,6 @@ public class EventListActivityTest {
         }
     }
 
-    @Test
-    public void testNonAdminClickingEventShowsToast() {
-        String eventName = uniqueEventName("Test Intent Event");
-        addDummyEvent(eventName, "12/12/2025");
-        
-        try (ActivityScenario<EventListActivity> scenario = ActivityScenario.launch(getIntentWithUser(false))) {
-            waitForView(withText(eventName), 10000);
-            onView(withText(eventName)).perform(click());
-            
-            // Note: Verifying Toasts in Espresso can be flaky, but we can verify we didn't navigate.
-            // Check that we are still in EventListActivity.
-            onView(withId(R.id.recyclerEvents)).check(matches(isDisplayed()));
-        }
-    }
 
     @Test
     public void testWelcomeTextDisplay() {

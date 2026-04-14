@@ -6,11 +6,16 @@ import android.util.Log;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.WriteBatch;
+
+import java.util.ArrayList;
 
 public class readWrite {
-    FirebaseFirestore db;
+    private final FirebaseFirestore db;
 
     public readWrite(FirebaseFirestore db) {
         this.db = db;
@@ -37,6 +42,105 @@ public class readWrite {
 
     public Task<Void> deleteUser(String userId) {
         return db.collection("users").document(userId).delete();
+    }
+
+    public boolean isReserved(Event event, User user) {
+        boolean isReserved = false;
+
+        ArrayList<String> events = user.getEvents();
+
+        if(events != null){
+            for(String event1 : events) {
+                if(event1.equals(event.getId())) {
+                    isReserved = true;
+                    break;
+                }
+            }
+        }
+
+        return isReserved;
+    }
+
+    public Task<Void> reserveEvent(Event event, User user) {
+        String field;
+        String variable;
+
+        if (user.getPhone() == null || user.getPhone().isEmpty()) {
+            field = "email";
+            variable = user.getEmail();
+        } else {
+            field = "phone";
+            variable = user.getPhone();
+        }
+
+        return db.collection("users")
+                .whereEqualTo(field, variable)
+                .whereEqualTo("password", user.getPassword())
+                .get()
+                .continueWithTask(task -> {
+                    if (!task.isSuccessful()) {
+                        throw task.getException();
+                    }
+
+                    WriteBatch batch = db.batch();
+
+                    for (DocumentSnapshot document : task.getResult()) {
+                        batch.update(
+                                db.collection("users").document(document.getId()),
+                                "events",
+                                FieldValue.arrayUnion(event.getId())
+                        );
+                    }
+
+                    batch.update(
+                            db.collection("events").document(event.getId()),
+                            "tickets",
+                            event.getTickets() - 1
+                    );
+
+                    return batch.commit();
+                });
+    }
+
+    public Task<Void> cancelEvent(Event event, User user) {
+        String field;
+        String variable;
+
+        if (user.getPhone() == null || user.getPhone().isEmpty()) {
+            field = "email";
+            variable = user.getEmail();
+        } else {
+            field = "phone";
+            variable = user.getPhone();
+        }
+
+        return db.collection("users")
+                .whereEqualTo(field, variable)
+                .whereEqualTo("password", user.getPassword())
+                .get()
+                .continueWithTask(task -> {
+                    if (!task.isSuccessful()) {
+                        throw task.getException();
+                    }
+
+                    WriteBatch batch = db.batch();
+
+                    for (DocumentSnapshot document : task.getResult()) {
+                        batch.update(
+                                db.collection("users").document(document.getId()),
+                                "events",
+                                FieldValue.arrayRemove(event.getId())
+                        );
+                    }
+
+                    batch.update(
+                            db.collection("events").document(event.getId()),
+                            "tickets",
+                            FieldValue.increment(1)
+                    );
+
+                    return batch.commit();
+                });
     }
 
     void signIn(String etEmail, String etPhone, String etPassword, SignInCallback callback) {

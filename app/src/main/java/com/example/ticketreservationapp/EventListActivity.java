@@ -50,6 +50,8 @@ public class EventListActivity extends AppCompatActivity implements EventAdapter
     private TextView tvResultsCount;
     private TextView tvNoResults;
 
+    private boolean isReservation = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -104,11 +106,20 @@ public class EventListActivity extends AppCompatActivity implements EventAdapter
                 for (QueryDocumentSnapshot document : task.getResult()) {
                     Event event = document.toObject(Event.class);
                     event.setId(document.getId());
-                    allEvents.add(event);
+                    if(isReservation) {
+                        for(String eventId : currentUser.getEvents()){
+                            if(eventId.equals(event.getId())) {
+                                allEvents.add(event);
+                            }
+                        }
+                    } else {
+                        allEvents.add(event);
+                    }
+
                 }
                 sortEventsByDate(allEvents);
                 filterHelper.setAllEvents(allEvents);
-                
+
                 // Setup filters after events are loaded
                 setupSearchFilter();
                 setupDateFilter();
@@ -128,11 +139,22 @@ public class EventListActivity extends AppCompatActivity implements EventAdapter
         SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
         Collections.sort(events, (e1, e2) -> {
             try {
-                Date d1 = sdf.parse(e1.getDate());
-                Date d2 = sdf.parse(e2.getDate());
-                if (d1 == null || d2 == null) return 0;
-                return d1.compareTo(d2);
-            } catch (ParseException e) {
+                String d1 = e1.getDate();
+                String d2 = e2.getDate();
+
+                if (d1 == null && d2 == null) return 0;
+                if (d1 == null) return 1;
+                if (d2 == null) return -1;
+
+                Date date1 = sdf.parse(d1);
+                Date date2 = sdf.parse(d2);
+
+                if (date1 == null && date2 == null) return 0;
+                if (date1 == null) return 1;
+                if (date2 == null) return -1;
+
+                return date1.compareTo(date2);
+            } catch (Exception e) {
                 return 0;
             }
         });
@@ -287,11 +309,18 @@ public class EventListActivity extends AppCompatActivity implements EventAdapter
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_home) {
+                isReservation = false;
+                fetchEvents();
                 return true;
             } else if (id == R.id.nav_search) {
                 return true;
-            } else return id == R.id.nav_reservation;
-        });
+            } else if (id == R.id.nav_reservation) {
+                isReservation = true;
+                fetchEvents();
+                return true;
+            }
+            return false;
+        } );
     }
 
     @Override
@@ -301,7 +330,10 @@ public class EventListActivity extends AppCompatActivity implements EventAdapter
             intent.putExtra("edit_event", event);
             startActivity(intent);
         } else {
-            Toast.makeText(this, "Selected: " + event.getEventName(), Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(this, EventReserveActivity.class);
+            intent.putExtra("reserve_event", event);
+            intent.putExtra("user", currentUser);
+            startActivity(intent);
         }
     }
 
